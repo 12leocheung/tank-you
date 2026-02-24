@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tank Battle Royale</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/comment/comment.min.js"></script>
+<script src="https://skulpt.org/js/skulpt.min.js"></script>
+<script src="https://skulpt.org/js/skulpt-stdlib.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#0a0e14;color:#e0e8f0;font-family:'Share Tech Mono',monospace;overflow:hidden;height:100vh;width:100vw;}
+#gameCanvas{display:block;position:absolute;top:0;left:0;cursor:crosshair;}
+
+/* SCREENS */
+.screen{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:10;background:rgba(5,9,16,0.97);}
+.screen.hidden{display:none;}
+
+/* MENU */
+#menuScreen{flex-direction:column;}
+.menu-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(0,200,255,0.06) 0%,transparent 60%),radial-gradient(ellipse at 80% 30%,rgba(255,100,0,0.05) 0%,transparent 60%);}
+.menu-scanlines{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.15) 2px,rgba(0,0,0,0.15) 4px);pointer-events:none;}
+.menu-content{position:relative;z-index:1;text-align:center;width:900px;max-width:95vw;}
+.game-title{font-family:'Orbitron',monospace;font-size:clamp(32px,5vw,68px);font-weight:900;letter-spacing:0.08em;background:linear-gradient(135deg,#00c8ff 0%,#ff6400 60%,#ffcc00 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;animation:titlePulse 3s ease-in-out infinite;}
+.game-subtitle{font-family:'Orbitron',monospace;font-size:13px;letter-spacing:0.3em;color:#4a7fa5;margin-bottom:32px;}
+@keyframes titlePulse{0%,100%{filter:brightness(1);}50%{filter:brightness(1.2);}}
+.class-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:24px;}
+.class-card{border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);padding:10px 6px;cursor:pointer;transition:all 0.2s;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));}
+.class-card:hover,.class-card.selected{background:rgba(0,200,255,0.1);border-color:rgba(0,200,255,0.5);transform:translateY(-2px);}
+.class-card.selected{border-color:#00c8ff;}
+.class-icon{width:28px;height:28px;border-radius:50%;margin:0 auto 6px;border:2px solid rgba(255,255,255,0.3);}
+.class-name{font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:0.05em;margin-bottom:3px;}
+.class-desc{font-size:8px;color:#607080;line-height:1.3;}
+.stat-bars{margin-top:5px;}
+.stat-bar-row{display:flex;align-items:center;gap:3px;margin-bottom:2px;}
+.stat-label{font-size:7px;color:#506070;width:14px;}
+.stat-bar-bg{flex:1;height:3px;background:rgba(255,255,255,0.1);}
+.stat-bar-fill{height:100%;}
+.menu-buttons{display:flex;gap:16px;justify-content:center;margin-bottom:20px;}
+.btn{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;letter-spacing:0.1em;padding:12px 28px;border:none;cursor:pointer;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);transition:all 0.2s;text-transform:uppercase;}
+.btn-primary{background:linear-gradient(135deg,#00c8ff,#0070a0);color:#fff;}
+.btn-primary:hover{background:linear-gradient(135deg,#33d4ff,#0090c8);transform:translateY(-2px);}
+.btn-secondary{background:rgba(255,255,255,0.05);color:#a0b8cc;border:1px solid rgba(255,255,255,0.1);clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);}
+.btn-secondary:hover{background:rgba(255,255,255,0.1);color:#fff;}
+.btn-sm{font-size:10px;padding:7px 16px;}
+.menu-hint{font-size:11px;color:#3a5570;margin-top:8px;}
+
+/* EDITOR SCREEN - full layout */
+#editorScreen{padding:0;align-items:stretch;justify-content:stretch;}
+.editor-layout{display:flex;flex-direction:column;width:100%;height:100%;overflow:hidden;}
+.editor-topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:#0d1520;border-bottom:1px solid rgba(0,200,255,0.15);flex-shrink:0;}
+.editor-topbar-left{display:flex;align-items:center;gap:16px;}
+.editor-title{font-family:'Orbitron',monospace;font-size:15px;color:#00c8ff;letter-spacing:0.1em;}
+.editor-topbar-right{display:flex;gap:8px;align-items:center;}
+.editor-status{font-size:11px;padding:5px 12px;border-left:3px solid #00c8ff;background:rgba(0,0,0,0.3);}
+.status-ok{border-color:#00ff88;color:#00ff88;}
+.status-err{border-color:#ff4444;color:#ff4444;}
+.status-warn{border-color:#ffcc00;color:#ffcc00;}
+.editor-body{display:flex;flex:1;overflow:hidden;}
+
+/* Code pane */
+.code-pane{display:flex;flex-direction:column;flex:1;min-width:0;border-right:1px solid rgba(255,255,255,0.06);}
+.code-pane-header{padding:6px 14px;background:#0b1018;border-bottom:1px solid rgba(255,255,255,0.05);font-size:10px;color:#3a6070;letter-spacing:0.1em;display:flex;align-items:center;gap:10px;}
+.lang-badge{background:rgba(0,200,255,0.15);color:#00c8ff;border:1px solid rgba(0,200,255,0.3);padding:2px 8px;font-size:9px;font-family:'Orbitron',monospace;letter-spacing:0.05em;}
+.CodeMirror{flex:1;height:100%!important;font-family:'Share Tech Mono',monospace!important;font-size:13px!important;line-height:1.6!important;background:#0d1117!important;}
+.CodeMirror-scroll{height:100%!important;}
+.code-pane-inner{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+
+/* Cheatsheet pane */
+.cheat-pane{width:340px;flex-shrink:0;display:flex;flex-direction:column;overflow:hidden;background:#080d14;}
+.cheat-pane-header{padding:8px 14px;border-bottom:1px solid rgba(255,255,255,0.06);font-family:'Orbitron',monospace;font-size:10px;color:#4a7fa5;letter-spacing:0.15em;background:#0b1018;}
+.cheat-tabs{display:flex;border-bottom:1px solid rgba(255,255,255,0.06);}
+.cheat-tab{flex:1;padding:7px 4px;font-size:9px;letter-spacing:0.08em;text-align:center;cursor:pointer;color:#3a5570;transition:all 0.15s;font-family:'Orbitron',monospace;border:none;background:none;}
+.cheat-tab:hover{color:#7090a0;}
+.cheat-tab.active{color:#00c8ff;border-bottom:2px solid #00c8ff;background:rgba(0,200,255,0.04);}
+.cheat-content{flex:1;overflow-y:auto;padding:12px;}
+.cheat-content::-webkit-scrollbar{width:4px;}
+.cheat-content::-webkit-scrollbar-thumb{background:#1a3040;border-radius:2px;}
+.cheat-section{margin-bottom:16px;}
+.cheat-section-title{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:0.15em;color:#ff9922;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid rgba(255,153,34,0.2);}
+.cheat-item{margin-bottom:8px;}
+.cheat-sig{font-size:11px;color:#00c8ff;font-family:'Share Tech Mono',monospace;margin-bottom:2px;}
+.cheat-ret{font-size:10px;color:#a0b8cc;margin-bottom:2px;}
+.cheat-note{font-size:10px;color:#4a6070;line-height:1.4;}
+.cheat-code{background:#0d1520;border:1px solid rgba(255,255,255,0.06);padding:8px 10px;font-size:11px;color:#c9d1d9;font-family:'Share Tech Mono',monospace;line-height:1.7;margin-top:4px;white-space:pre;}
+.cheat-code .kw{color:#ff79c6;}
+.cheat-code .fn{color:#50fa7b;}
+.cheat-code .cm{color:#6272a4;}
+.cheat-code .st{color:#f1fa8c;}
+.cheat-code .num{color:#bd93f9;}
+.cheat-inline{display:inline-block;background:rgba(0,200,255,0.1);color:#00c8ff;padding:1px 5px;font-family:'Share Tech Mono',monospace;font-size:10px;border-radius:2px;}
+.tank-class-table{width:100%;font-size:10px;border-collapse:collapse;}
+.tank-class-table th{color:#4a7fa5;font-family:'Orbitron',monospace;font-size:8px;letter-spacing:0.1em;padding:4px 6px;border-bottom:1px solid rgba(255,255,255,0.07);text-align:left;}
+.tank-class-table td{padding:4px 6px;border-bottom:1px solid rgba(255,255,255,0.04);color:#8090a0;vertical-align:middle;}
+.tank-class-table tr:hover td{background:rgba(255,255,255,0.03);}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:middle;}
+.powerup-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.powerup-item{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:6px 8px;}
+.powerup-name{font-size:10px;font-family:'Orbitron',monospace;margin-bottom:2px;}
+.powerup-desc{font-size:9px;color:#4a6070;line-height:1.3;}
+
+/* error output */
+.error-bar{padding:6px 14px;font-size:11px;color:#ff6666;background:rgba(255,50,50,0.08);border-top:1px solid rgba(255,50,50,0.2);font-family:'Share Tech Mono',monospace;min-height:28px;display:none;}
+.error-bar.visible{display:block;}
+
+/* GAME UI */
+#gameUI{position:absolute;inset:0;pointer-events:none;z-index:5;display:none;}
+#gameUI.active{display:block;}
+.hud-top{position:absolute;top:0;left:0;right:0;display:flex;align-items:stretch;justify-content:space-between;background:linear-gradient(180deg,rgba(0,0,0,0.85) 0%,transparent 100%);padding:10px 16px 20px;gap:20px;}
+.hud-left{display:flex;flex-direction:column;gap:4px;}
+.hud-status{font-family:'Orbitron',monospace;font-size:18px;font-weight:700;color:#fff;}
+.hud-status.victory{color:#ffcc00;text-shadow:0 0 20px #ffcc00;}
+.hud-status.eliminated{color:#ff4444;}
+.hud-stats{font-size:12px;color:#7090a0;}
+.hud-center{text-align:center;}
+.zone-info{font-family:'Orbitron',monospace;font-size:13px;color:#00c8ff;}
+.zone-warning{color:#ff4444;animation:blink 0.5s step-end infinite;}
+@keyframes blink{50%{opacity:0;}}
+.hud-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+.health-bar-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
+.health-label{font-size:10px;color:#607080;letter-spacing:0.1em;}
+.health-bar-outer{width:180px;height:10px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);}
+.health-bar-inner{height:100%;background:linear-gradient(90deg,#00ff88,#00c844);transition:width 0.2s;}
+.health-bar-inner.low{background:linear-gradient(90deg,#ff4444,#cc2222);}
+.reload-bar-outer{width:180px;height:4px;background:rgba(255,255,255,0.05);}
+.reload-bar-inner{height:100%;background:#ffcc00;transition:width 0.1s;}
+.active-effects{display:flex;gap:4px;margin-top:2px;}
+.effect-badge{font-size:9px;padding:2px 6px;background:rgba(0,200,255,0.2);border:1px solid rgba(0,200,255,0.4);color:#00c8ff;font-family:'Orbitron',monospace;}
+#minimap{position:absolute;bottom:16px;right:16px;width:180px;height:180px;background:rgba(0,0,0,0.75);border:1px solid rgba(0,200,255,0.3);}
+#minimapCanvas{display:block;}
+.hud-controls{position:absolute;bottom:16px;left:16px;font-size:10px;color:#3a5060;line-height:1.7;}
+.hud-controls span{color:#506070;}
+#endOverlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:20px;z-index:8;background:rgba(0,0,0,0.7);pointer-events:none;}
+#endOverlay.active{display:flex;pointer-events:all;}
+.end-title{font-family:'Orbitron',monospace;font-size:clamp(36px,6vw,80px);font-weight:900;letter-spacing:0.05em;}
+.end-title.victory{color:#ffcc00;text-shadow:0 0 40px rgba(255,200,0,0.6);}
+.end-title.eliminated{color:#ff4444;text-shadow:0 0 40px rgba(255,0,0,0.4);}
+.end-stats{font-size:18px;color:#7090a0;text-align:center;line-height:2;}
+#killfeed{position:absolute;top:80px;right:16px;width:260px;display:flex;flex-direction:column;gap:4px;pointer-events:none;}
+.kill-entry{font-size:11px;background:rgba(0,0,0,0.6);border-left:2px solid #ff4444;padding:4px 8px;animation:slideIn 0.2s ease;}
+@keyframes slideIn{from{transform:translateX(20px);opacity:0;}}
+.kill-entry .killer{color:#ffcc00;}
+.kill-entry .victim{color:#ff4444;}
+</style>
+</head>
+<body>
+
+<canvas id="gameCanvas"></canvas>
+
+<!-- GAME UI -->
+<div id="gameUI">
+  <div class="hud-top">
+    <div class="hud-left">
+      <div class="hud-status" id="hudStatus">Alive: 15/15</div>
+      <div class="hud-stats" id="hudStats">Kills: 0 | Damage: 0</div>
+    </div>
+    <div class="hud-center">
+      <div class="zone-info" id="zoneInfo">Zone shrinks in: 45s</div>
+    </div>
+    <div class="hud-right">
+      <div class="health-bar-wrap">
+        <div class="health-label">ARMOR</div>
+        <div class="health-bar-outer"><div class="health-bar-inner" id="healthBar" style="width:100%"></div></div>
+        <div class="reload-bar-outer"><div class="reload-bar-inner" id="reloadBar" style="width:0%"></div></div>
+      </div>
+      <div class="active-effects" id="activeEffects"></div>
+    </div>
+  </div>
+  <div id="minimap"><canvas id="minimapCanvas" width="180" height="180"></canvas></div>
+  <div id="killfeed"></div>
+  <div class="hud-controls">
+    <span>[R]</span> Restart &nbsp;&nbsp; <span>[E]</span> Edit AI &nbsp;&nbsp; <span>[ESC]</span> Menu
+  </div>
+</div>
+
+<div id="endOverlay">
+  <div class="end-title" id="endTitle">ELIMINATED</div>
+  <div class="end-stats" id="endStats"></div>
+  <button class="btn btn-primary" onclick="restartGame()" style="pointer-events:all">PLAY AGAIN</button>
+</div>
+
+<!-- MENU SCREEN -->
+<div class="screen" id="menuScreen">
+  <div class="menu-bg"></div>
+  <div class="menu-scanlines"></div>
+  <div class="menu-content">
+    <div class="game-title">TANK BATTLE ROYALE</div>
+    <div class="game-subtitle">WRITE PYTHON · PROGRAM YOUR TANK · DOMINATE</div>
+    <div class="class-grid" id="classGrid"></div>
+    <div class="menu-buttons">
+      <button class="btn btn-primary" onclick="startGame()">▶ LAUNCH BATTLE</button>
+      <button class="btn btn-secondary" onclick="showEditor()">🐍 PYTHON EDITOR</button>
+    </div>
+    <div class="menu-hint">Write Python AI code · import tank · Your function runs every frame</div>
+  </div>
+</div>
+
+<!-- PYTHON EDITOR SCREEN -->
+<div class="screen hidden" id="editorScreen">
+  <div class="editor-layout">
+    <div class="editor-topbar">
+      <div class="editor-topbar-left">
+        <div class="editor-title">🐍 PYTHON AI EDITOR</div>
+        <span class="lang-badge">PYTHON 3</span>
+      </div>
+      <div class="editor-topbar-right">
+        <div class="editor-status status-ok" id="editorStatus">✓ Ready</div>
+        <button class="btn btn-sm btn-secondary" onclick="resetToDefault()">RESET</button>
+        <button class="btn btn-sm btn-primary" onclick="validateAndSave()">▶ TEST &amp; SAVE</button>
+        <button class="btn btn-sm btn-secondary" onclick="hideEditor()">← BACK</button>
+      </div>
+    </div>
+    <div class="editor-body">
+      <div class="code-pane">
+        <div class="code-pane-header">
+          <span>my_tank_ai.py</span>
+          <span style="color:#2a4050">·</span>
+          <span style="color:#2a4050">Ctrl+/ to comment · Tab to indent</span>
+        </div>
+        <div class="code-pane-inner">
+          <textarea id="pyEditor"></textarea>
+        </div>
+        <div class="error-bar" id="errorBar"></div>
+      </div>
+
+      <!-- CHEATSHEET PANE -->
+      <div class="cheat-pane">
+        <div class="cheat-pane-header">📋 CHEATSHEET</div>
+        <div class="cheat-tabs">
+          <button class="cheat-tab active" onclick="showTab('api')">API</button>
+          <button class="cheat-tab" onclick="showTab('classes')">CLASSES</button>
+          <button class="cheat-tab" onclick="showTab('powerups')">POWER-UPS</button>
+          <button class="cheat-tab" onclick="showTab('examples')">EXAMPLES</button>
+        </div>
+
+        <!-- API TAB -->
+        <div class="cheat-content" id="tab-api">
+          <div class="cheat-section">
+            <div class="cheat-section-title">IMPORT</div>
+            <div class="cheat-item">
+              <div class="cheat-code"><span class="kw">import</span> tank</div>
+              <div class="cheat-note">Always import at the top. Gives you access to all API calls below.</div>
+            </div>
+          </div>
+          <div class="cheat-section">
+            <div class="cheat-section-title">POSITION &amp; STATUS</div>
+            <div class="cheat-item">
+              <div class="cheat-sig">tank.get_position()</div>
+              <div class="cheat-ret">→ (x, y) tuple of floats</div>
+              <div class="cheat-note">Your current world coordinates.</div>
+            </div>
+            <div class="cheat-item">
+              <div class="cheat-sig">tank.get_health()</div>
+              <div class="cheat-ret">→ float  (0 to max_health)</div>
+            </div>
+            <div class="cheat-item">
+              <div class="cheat-sig">tank.get_range()</div>
+              <div class="cheat-ret">→ float  (sensor + shoot range)</div>
+            </div>
+            <div class="cheat-item">
+              <div class="cheat-sig">tank.get_arena_bounds()</div>
+              <div class="cheat-ret">→ (left, top, right, bottom)</div>
+            </div>
+          </div>
+          <div class="cheat-section">
+            <div class="cheat-section-title">ENEMIES</div>
+            <div class="cheat-item">
+              <div class="cheat-sig">tank.get_enemies()</div>
+              <div class="cheat-ret">→ list of (x, y, dist) — within range only</div>
+              <div class="cheat-note">Only enemies you can currently shoot.</div>
+            </div>
+            <div class="cheat-item">
+              <div class="cheat-sig">tank.get_all_enemies()</div>
+              <div class="cheat-ret">→ list of (x, y, dist) — everyone alive</div>
+              <div class="cheat-note">Use for hunting / navigation even out of range.</div>
+            </div>
+          </div>
+          <div class="cheat-section">
+            <div class="cheat-section-title">ZONE</div>
+            <div class="cheat-item">
+              <div class="cheat-sig">tank.get_zone()</div>
+              <div class="cheat-ret">→ (center_x, center_y, radius)</div>
+              <div class="cheat-note">Stay inside the circle or take damage!</div>
+            </div>
+          </div>
+          <div class="cheat-section">
+            <div class="cheat-section-title">POWER-UPS</div>
+            <div class="cheat-item">
+              <div class="cheat-sig">tank.get_powerups()</div>
+              <div class="cheat-ret">→ list of (x, y, type_str, dist)</div>
+              <div class="cheat-note">Types: "health" "speed" "damage" "rapid_fire" "shield"</div>
+            </div>
+          </div>
+          <div class="cheat-section">
+            <div class="cheat-section-title">ACTIONS</div>
+            <div class="cheat-item">
+              <div class="cheat-sig">tank.move_to(x, y)</div>
+              <div class="cheat-note">Move toward world position. Clamped to arena.</div>
+            </div>
+            <div class="cheat-item">
+              <div class="cheat-sig">tank.shoot_at(x, y)</div>
+              <div class="cheat-note">Fire toward world position. Respects reload timer.</div>
+            </div>
+            <div class="cheat-item">
+              <div class="cheat-sig">tank.stop()</div>
+              <div class="cheat-note">Cancel movement this frame.</div>
+            </div>
+            <div class="cheat-item">
+              <div class="cheat-sig">tank.set_class(name)</div>
+              <div class="cheat-note">Set tank class — <strong>once only</strong>, at game start. Use a string like "artillery".</div>
+            </div>
+          </div>
+          <div class="cheat-section">
+            <div class="cheat-section-title">MATH HELPERS</div>
+            <div class="cheat-item">
+              <div class="cheat-code"><span class="kw">import</span> math
+math.sqrt(dx**<span class="num">2</span> + dy**<span class="num">2</span>)  <span class="cm"># distance</span>
+math.atan2(dy, dx)           <span class="cm"># angle</span>
+math.cos(angle)              <span class="cm"># x component</span>
+math.sin(angle)              <span class="cm"># y component</span>
+math.pi                      <span class="cm"># 3.14159...</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CLASSES TAB -->
+        <div class="cheat-content hidden" id="tab-classes">
+          <div class="cheat-section">
+            <div class="cheat-section-title">TANK CLASSES</div>
+            <div class="cheat-note" style="margin-bottom:10px;color:#4a6070">Use <span class="cheat-inline">tank.set_class("name")</span> once at the start of your function.</div>
+            <table class="tank-class-table">
+              <tr><th>CLASS</th><th>HP</th><th>DMG</th><th>RNG</th><th>SPD</th><th>RLD</th></tr>
+              <tr><td><span class="dot" style="background:#ff3333"></span>assault</td><td>200</td><td>8</td><td>150</td><td>3.5</td><td>0.25s</td></tr>
+              <tr><td><span class="dot" style="background:#3377ff"></span>balanced</td><td>150</td><td>20</td><td>250</td><td>2.8</td><td>0.6s</td></tr>
+              <tr><td><span class="dot" style="background:#ffdd00"></span>sniper</td><td>100</td><td>45</td><td>400</td><td>2.0</td><td>1.2s</td></tr>
+              <tr><td><span class="dot" style="background:#888888"></span>tank</td><td>300</td><td>15</td><td>180</td><td>1.8</td><td>0.8s</td></tr>
+              <tr><td><span class="dot" style="background:#00ffff"></span>speedster</td><td>80</td><td>12</td><td>200</td><td>4.5</td><td>0.4s</td></tr>
+              <tr><td><span class="dot" style="background:#aa44cc"></span>artillery</td><td>120</td><td>60</td><td>500</td><td>1.5</td><td>2.0s</td></tr>
+              <tr><td><span class="dot" style="background:#ff9922"></span>guerrilla</td><td>110</td><td>18</td><td>220</td><td>3.8</td><td>0.35s</td></tr>
+            </table>
+          </div>
+          <div class="cheat-section">
+            <div class="cheat-section-title">TIPS</div>
+            <div class="cheat-note" style="line-height:1.8">
+              🎯 <strong style="color:#c0c8d0">Artillery</strong> — never gets hit if you keep max distance<br>
+              ⚡ <strong style="color:#c0c8d0">Speedster</strong> — circle enemies, hard to hit<br>
+              🛡 <strong style="color:#c0c8d0">Tank</strong> — pair with shield powerup for near-immortality<br>
+              🔫 <strong style="color:#c0c8d0">Assault</strong> — best DPS up close, spray and pray<br>
+              🎪 <strong style="color:#c0c8d0">Guerrilla</strong> — hit-and-run, fastest reload
+            </div>
+          </div>
+        </div>
+
+        <!-- POWERUPS TAB -->
+        <div class="cheat-content hidden" id="tab-powerups">
+          <div class="cheat-section">
+            <div class="cheat-section-title">POWER-UP TYPES</div>
+            <div class="powerup-grid">
+              <div class="powerup-item">
+                <div class="powerup-name" style="color:#ff4444">❤ health</div>
+                <div class="powerup-desc">+50 HP instantly. Doesn't exceed max HP.</div>
+              </div>
+              <div class="powerup-item">
+                <div class="powerup-name" style="color:#00ffff">» speed</div>
+                <div class="powerup-desc">+60% movement speed for 5 seconds.</div>
+              </div>
+              <div class="powerup-item">
+                <div class="powerup-name" style="color:#ff9922">! damage</div>
+                <div class="powerup-desc">2× bullet damage for 4 seconds.</div>
+              </div>
+              <div class="powerup-item">
+                <div class="powerup-name" style="color:#ffdd00">* rapid_fire</div>
+                <div class="powerup-desc">60% faster reload for 3 seconds.</div>
+              </div>
+              <div class="powerup-item" style="grid-column:1/-1">
+                <div class="powerup-name" style="color:#4488ff">○ shield</div>
+                <div class="powerup-desc">50 HP shield absorbs damage before HP. Permanent until depleted.</div>
+              </div>
+            </div>
+          </div>
+          <div class="cheat-section">
+            <div class="cheat-section-title">COLLECTION CODE</div>
+            <div class="cheat-code"><span class="kw">def</span> <span class="fn">grab_powerup</span>():
+    pups = tank.get_powerups()
+    <span class="kw">if not</span> pups:
+        <span class="kw">return False</span>
+    mx, my = tank.get_position()
+    <span class="cm"># Sort: prefer shield/damage, then close</span>
+    priority = {<span class="st">"shield"</span>:<span class="num">0</span>,<span class="st">"damage"</span>:<span class="num">1</span>,
+                <span class="st">"rapid_fire"</span>:<span class="num">2</span>,<span class="st">"health"</span>:<span class="num">3</span>,<span class="st">"speed"</span>:<span class="num">4</span>}
+    best = <span class="fn">min</span>(pups,
+        key=<span class="kw">lambda</span> p: priority.get(p[<span class="num">2</span>],<span class="num">9</span>)*<span class="num">500</span>+p[<span class="num">3</span>])
+    <span class="kw">if</span> best[<span class="num">3</span>] &lt; <span class="num">200</span>:
+        tank.move_to(best[<span class="num">0</span>], best[<span class="num">1</span>])
+        <span class="kw">return True</span>
+    <span class="kw">return False</span></div>
+          </div>
+        </div>
+
+        <!-- EXAMPLES TAB -->
+        <div class="cheat-content hidden" id="tab-examples">
+          <div class="cheat-section">
+            <div class="cheat-section-title">MINIMUM WORKING AI</div>
+            <div class="cheat-code"><span class="kw">import</span> tank
+<span class="kw">def</span> <span class="fn">my_tank_ai</span>():
+    enemies = tank.get_enemies()
+    <span class="kw">if</span> enemies:
+        x, y, d = enemies[<span class="num">0</span>]
+        tank.shoot_at(x, y)
+        tank.move_to(x, y)</div>
+          </div>
+          <div class="cheat-section">
+            <div class="cheat-section-title">STAY IN ZONE</div>
+            <div class="cheat-code">cx, cy, r = tank.get_zone()
+mx, my = tank.get_position()
+dist = math.sqrt((mx-cx)**<span class="num">2</span>+(my-cy)**<span class="num">2</span>)
+<span class="kw">if</span> dist > r - <span class="num">50</span>:
+    tank.move_to(cx, cy)
+    <span class="kw">return</span></div>
+          </div>
+          <div class="cheat-section">
+            <div class="cheat-section-title">FIND CLOSEST ENEMY</div>
+            <div class="cheat-code">all_e = tank.get_all_enemies()
+<span class="kw">if</span> all_e:
+    closest = <span class="fn">min</span>(all_e, key=<span class="kw">lambda</span> e: e[<span class="num">2</span>])
+    ex, ey, dist = closest
+    tank.move_to(ex, ey)</div>
+          </div>
+          <div class="cheat-section">
+            <div class="cheat-section-title">STRAFE AN ENEMY</div>
+            <div class="cheat-code">ex, ey, d = target
+angle = math.atan2(my-ey, mx-ex)
+flip = <span class="num">1</span> <span class="kw">if</span> (time.time() % <span class="num">1.5</span>) &lt; <span class="num">0.75</span> <span class="kw">else</span> -<span class="num">1</span>
+sx = mx + math.cos(angle+math.pi/<span class="num">2</span>*flip)*<span class="num">70</span>
+sy = my + math.sin(angle+math.pi/<span class="num">2</span>*flip)*<span class="num">70</span>
+tank.move_to(sx, sy)</div>
+          </div>
+          <div class="cheat-section">
+            <div class="cheat-section-title">KITE (RETREAT + SHOOT)</div>
+            <div class="cheat-code">ex, ey, d = target
+tank.shoot_at(ex, ey)
+<span class="cm"># Run away while shooting</span>
+rx = mx + (mx - ex) * <span class="num">2</span>
+ry = my + (my - ey) * <span class="num">2</span>
+tank.move_to(rx, ry)</div>
+          </div>
+        </div>
+      </div><!-- end cheat-pane -->
+    </div><!-- end editor-body -->
+  </div><!-- end editor-layout -->
+</div>
+
+<script>
+// ==============================================================
+//  CONSTANTS
+// ==============================================================
+const MAP_W = 4000, MAP_H = 3000;
+const ARENA = { left:80, top:80, right:MAP_W-80, bottom:MAP_H-80 };
+const SHRINK_START = 45;
+const ZONE_DAMAGE = 3;
+const TANK_CLASSES = {
+  assault:   { name:'Assault',   range:150, speed:3.5, health:200, damage:8,  reload:0.25, color:'#ff3333', desc:'Fast reload, short range' },
+  balanced:  { name:'Balanced',  range:250, speed:2.8, health:150, damage:20, reload:0.6,  color:'#3377ff', desc:'Well-rounded stats' },
+  sniper:    { name:'Sniper',    range:400, speed:2.0, health:100, damage:45, reload:1.2,  color:'#ffdd00', desc:'Long range, high damage' },
+  tank:      { name:'Tank',      range:180, speed:1.8, health:300, damage:15, reload:0.8,  color:'#888888', desc:'Max HP, very slow' },
+  speedster: { name:'Speedster', range:200, speed:4.5, health:80,  damage:12, reload:0.4,  color:'#00ffff', desc:'Fastest, very low HP' },
+  artillery: { name:'Artillery', range:500, speed:1.5, health:120, damage:60, reload:2.0,  color:'#aa44cc', desc:'Extreme range/damage' },
+  guerrilla: { name:'Guerrilla', range:220, speed:3.8, health:110, damage:18, reload:0.35, color:'#ff9922', desc:'Hit-and-run specialist' },
+};
+const POWERUP_TYPES = ['health','speed','damage','rapid_fire','shield'];
+const POWERUP_COLORS = { health:'#ff4444', speed:'#00ffff', damage:'#ff9922', rapid_fire:'#ffdd00', shield:'#4488ff' };
+
+// ==============================================================
+//  CANVAS / STATE
+// ==============================================================
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const minimapCanvas = document.getElementById('minimapCanvas');
+const minimapCtx = minimapCanvas.getContext('2d');
+let W, H;
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+window.addEventListener('resize', resize); resize();
+
+let selectedClass = 'balanced';
+let userPyCode = '';
+let camera = { x:0, y:0, zoom:1, targetZoom:1 };
+let tanks = [], bullets = [], powerups = [];
+let gameRunning = false, playerTank = null, gameTime = 0, lastPowerupSpawn = 0;
+
+// ==============================================================
+//  DEFAULT PYTHON AI
+// ==============================================================
+const DEFAULT_PY = `import tank
+import math
+
+def my_tank_ai():
+    # Set your class once — only applies the first time
+    tank.set_class("balanced")
+
+    # --- Gather info ---
+    mx, my = tank.get_position()
+    hp = tank.get_health()
+    cx, cy, zone_r = tank.get_zone()
+    enemies = tank.get_enemies()       # within shooting range
+    all_enemies = tank.get_all_enemies()
+    powerups = tank.get_powerups()     # (x, y, type, dist)
+
+    # --- 1. Escape zone if outside ---
+    my_dist = math.sqrt((mx - cx)**2 + (my - cy)**2)
+    if my_dist > zone_r - 40:
+        tank.move_to(cx, cy)
+        return
+
+    # --- 2. Grab nearby powerups if safe ---
+    if powerups and not enemies:
+        best = min(powerups, key=lambda p: p[3])
+        if best[3] < 150:
+            tank.move_to(best[0], best[1])
+            return
+
+    # --- 3. Fight enemies in range ---
+    if enemies:
+        target = min(enemies, key=lambda e: e[2])
+        ex, ey, dist = target
+
+        # Always shoot
+        tank.shoot_at(ex, ey)
+
+        if dist > 130:
+            # Close the gap
+            tank.move_to(ex, ey)
+        elif dist < 60:
+            # Retreat
+            tank.move_to(mx + (mx - ex) * 2, my + (my - ey) * 2)
+        else:
+            # Strafe sideways
+            angle = math.atan2(my - ey, mx - ex) + math.pi / 2
+            tank.move_to(mx + math.cos(angle) * 70,
+                         my + math.sin(angle) * 70)
+        return
+
+    # --- 4. Hunt nearest enemy ---
+    if all_enemies:
+        nearest = min(all_enemies, key=lambda e: e[2])
+        tank.move_to(nearest[0], nearest[1])
+    else:
+        tank.move_to(cx, cy)
+`;
+
+// ==============================================================
+//  CODEMIRROR SETUP
+// ==============================================================
+let cmEditor;
+window.addEventListener('load', () => {
+  cmEditor = CodeMirror.fromTextArea(document.getElementById('pyEditor'), {
+    mode: 'python',
+    theme: 'dracula',
+    lineNumbers: true,
+    indentUnit: 4,
+    tabSize: 4,
+    indentWithTabs: false,
+    matchBrackets: true,
+    autoCloseBrackets: true,
+    lineWrapping: false,
+    extraKeys: {
+      'Ctrl-/': 'toggleComment',
+      'Tab': (cm) => cm.execCommand('indentMore'),
+      'Shift-Tab': (cm) => cm.execCommand('indentLess'),
+    }
+  });
+  cmEditor.setValue(DEFAULT_PY);
+  userPyCode = DEFAULT_PY;
+
+  // Make CM fill its container
+  cmEditor.setSize('100%', '100%');
+});
+
+// ==============================================================
+//  CHEATSHEET TABS
+// ==============================================================
+function showTab(id) {
+  document.querySelectorAll('.cheat-content').forEach(el => el.classList.add('hidden'));
+  document.querySelectorAll('.cheat-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.remove('hidden');
+  event.target.classList.add('active');
+}
+
+// ==============================================================
+//  EDITOR FUNCTIONS
+// ==============================================================
+function showEditor() {
+  document.getElementById('editorScreen').classList.remove('hidden');
+  document.getElementById('menuScreen').classList.add('hidden');
+  setTimeout(() => cmEditor && cmEditor.refresh(), 50);
+}
+function hideEditor() {
+  document.getElementById('editorScreen').classList.add('hidden');
+  document.getElementById('menuScreen').classList.remove('hidden');
+}
+function resetToDefault() {
+  cmEditor.setValue(DEFAULT_PY);
+  setEditorStatus('warn', '⚠ Reset to default — click TEST & SAVE to apply');
+}
+
+function setEditorStatus(type, msg) {
+  const el = document.getElementById('editorStatus');
+  el.className = 'editor-status status-' + type;
+  el.textContent = msg;
+}
+
+// Run a quick Skulpt syntax/runtime check, then save
+function validateAndSave() {
+  const code = cmEditor.getValue();
+  const errBar = document.getElementById('errorBar');
+  errBar.classList.remove('visible');
+  setEditorStatus('warn', '⏳ Validating...');
+
+  // Must contain the entry point
+  if (!code.includes('def my_tank_ai()')) {
+    setEditorStatus('err', '✗ Must define: def my_tank_ai()');
+    errBar.textContent = 'Error: your file must contain  def my_tank_ai():';
+    errBar.classList.add('visible');
+    return;
+  }
+
+  // Run via Skulpt with a mock tank module to catch import/syntax errors
+  Sk.configure({
+    output: () => {},
+    read: (x) => {
+      if (x === 'tank') return SKULPT_TANK_MODULE_SRC;
+      if (Sk.builtinFiles && Sk.builtinFiles.files[x]) return Sk.builtinFiles.files[x];
+      throw new Error("Module not found: " + x);
+    }
+  });
+
+  // Append a call so we verify the function actually runs
+  const testCode = code + '\nmy_tank_ai()\n';
+  Sk.misceval.asyncToPromise(() =>
+    Sk.importMainWithBody('<test>', false, testCode, true)
+  ).then(() => {
+    userPyCode = code;
+    setEditorStatus('ok', '✓ Valid Python — saved!');
+    errBar.classList.remove('visible');
+  }).catch(err => {
+    const msg = err.toString().replace('RangeError: ', '').replace('Traceback (most recent call last):\n','');
+    setEditorStatus('err', '✗ Python error — check below');
+    errBar.textContent = msg;
+    errBar.classList.add('visible');
+  });
+}
+
+// ==============================================================
+//  SKULPT "tank" BUILT-IN MODULE SOURCE
+//  This is the Python source that gets injected as the `tank` module.
+//  It stores commands in _cmds which JS reads each frame.
+// ==============================================================
+const SKULPT_TANK_MODULE_SRC = `
+# tank module - injected by the game engine
+# All functions read/write the _bridge dict on the JS side.
+
+def _get(key):
+    return __import__('__builtin__').__dict__['_tank_bridge'][key]
+
+def _set(key, val):
+    __import__('__builtin__').__dict__['_tank_bridge'][key] = val
+
+def get_position():
+    b = _get('state')
+    return (b['x'], b['y'])
+
+def get_health():
+    return _get('state')['hp']
+
+def get_range():
+    return _get('state')['range']
+
+def get_enemies():
+    return _get('state')['enemies']
+
+def get_all_enemies():
+    return _get('state')['all_enemies']
+
+def get_powerups():
+    return _get('state')['powerups']
+
+def get_zone():
+    z = _get('state')['zone']
+    return (z[0], z[1], z[2])
+
+def get_arena_bounds():
+    b = _get('state')['bounds']
+    return (b[0], b[1], b[2], b[3])
+
+def move_to(x, y):
+    _set('move', [float(x), float(y)])
+
+def shoot_at(x, y):
+    _set('shoot', [float(x), float(y)])
+
+def stop():
+    _set('move', None)
+
+def set_class(name):
+    _set('set_class', str(name))
+`;
+
+// ==============================================================
+//  PYTHON → JS BRIDGE
+//  Each frame we build a bridge object, run the Python AI,
+//  then read back commands.
+// ==============================================================
+let _compiledPyFn = null;   // compiled Skulpt program
+let _pyLoadError  = null;
+
+function buildTankState(t) {
+  const enemies = tanks.filter(o => o !== t && o.alive).map(o => {
+    const d = Math.hypot(o.x - t.x, o.y - t.y);
+    return d <= t.range ? [o.x, o.y, d] : null;
+  }).filter(Boolean);
+
+  const allEnemies = tanks.filter(o => o !== t && o.alive).map(o =>
+    [o.x, o.y, Math.hypot(o.x - t.x, o.y - t.y)]
+  );
+
+  const pups = powerups.filter(p => p.active).map(p =>
+    [p.x, p.y, p.type, Math.hypot(p.x - t.x, p.y - t.y)]
+  );
+
+  return {
+    x: t.x, y: t.y,
+    hp: t.health,
+    range: t.range,
+    enemies,
+    all_enemies: allEnemies,
+    powerups: pups,
+    zone: [zone.cx, zone.cy, zone.radius],
+    bounds: [ARENA.left, ARENA.top, ARENA.right, ARENA.bottom]
+  };
+}
+
+// Run Python AI synchronously via Skulpt
+// We precompile once, then re-run each frame via a __frame__ call.
+let _skulptReady = false;
+let _skulptGlobals = null;
+
+function initSkulpt() {
+  const code = userPyCode || DEFAULT_PY;
+  _skulptReady = false;
+  _skulptGlobals = null;
+  _pyLoadError = null;
+
+  Sk.configure({
+    output: () => {},
+    read: (x) => {
+      if (x === 'tank') return SKULPT_TANK_MODULE_SRC;
+      if (Sk.builtinFiles && Sk.builtinFiles.files[x]) return Sk.builtinFiles.files[x];
+      throw new Error("Module not found: " + x);
+    },
+    __future__: Sk.python3
+  });
+
+  // We wrap the user code so we can call my_tank_ai() each frame
+  const wrapper = code + `
+import __builtin__
+def __run_frame__():
+    my_tank_ai()
+`;
+
+  Sk.misceval.asyncToPromise(() =>
+    Sk.importMainWithBody('<ai>', false, wrapper, true)
+  ).then(mod => {
+    _skulptGlobals = mod;
+    _skulptReady = true;
+  }).catch(err => {
+    _pyLoadError = err.toString();
+    console.error('Skulpt init error:', _pyLoadError);
+    // Fall back to default
+    if (code !== DEFAULT_PY) {
+      userPyCode = DEFAULT_PY;
+      initSkulpt();
+    }
+  });
+}
+
+// Bridge object: JS sets state, Python reads it; Python sets cmds, JS reads them
+const _bridge = { state: null, move: null, shoot: null, set_class: null };
+
+function runPythonAI(tank) {
+  if (!_skulptReady || !_skulptGlobals) return;
+
+  // Reset commands
+  _bridge.move = null;
+  _bridge.shoot = null;
+  _bridge.set_class = null;
+  _bridge.state = buildTankState(tank);
+
+  // Inject bridge into Skulpt's builtins so the tank module can access it
+  Sk.builtins['_tank_bridge'] = _bridge;
+
+  try {
+    const runFn = _skulptGlobals.$d['__run_frame__'];
+    Sk.misceval.callsimArray(runFn, []);
+  } catch(e) {
+    // silent runtime errors — tank just does nothing this frame
+  }
+
+  // Apply commands
+  if (_bridge.set_class && !tank._classSet) {
+    tank._classSet = true;
+    tank.applyClass(_bridge.set_class);
+  }
+  if (_bridge.move) {
+    let [x, y] = _bridge.move;
+    x = Math.max(ARENA.left+20, Math.min(ARENA.right-20,  x));
+    y = Math.max(ARENA.top+20,  Math.min(ARENA.bottom-20, y));
+    tank._moveTarget = {x, y};
+  }
+  if (_bridge.shoot) {
+    tank._shootTarget = { x: _bridge.shoot[0], y: _bridge.shoot[1] };
+  }
+}
+
+// ==============================================================
+//  ZONE
+// ==============================================================
+class Zone {
+  constructor() {
+    this.cx = MAP_W / 2; this.cy = MAP_H / 2;
+    this.maxR = Math.min(MAP_W, MAP_H) / 2 - 100;
+    this.radius = this.maxR; this.targetR = this.maxR;
+    this.shrinking = false; this.shrinkSpeed = 0.8; this.stage = 1;
+  }
+  update(dt, gt) {
+    if (gt > SHRINK_START && !this.shrinking) { this.shrinking=true; this.targetR=this.maxR*0.4; this.stage=2; }
+    else if (gt > SHRINK_START+30 && this.stage===2) { this.targetR=this.maxR*0.15; this.stage=3; this.shrinkSpeed=1.2; }
+    if (this.shrinking) {
+      const step = this.shrinkSpeed*dt*60;
+      if (this.radius > this.targetR) this.radius = Math.max(this.targetR, this.radius-step);
+      else this.radius = Math.min(this.targetR, this.radius+step);
+    }
+  }
+  outside(x,y) { return Math.hypot(x-this.cx, y-this.cy) > this.radius; }
+  draw(sx,sy) {
+    ctx.save();
+    ctx.beginPath(); ctx.rect(0,0,W,H);
+    ctx.arc(sx,sy,this.radius*camera.zoom,0,Math.PI*2,true);
+    ctx.fillStyle='rgba(0,0,0,0.45)'; ctx.fill();
+    const pulse=Math.sin(Date.now()*0.006)*0.3+0.7;
+    const warn=(this.radius-this.targetR)<80&&this.shrinking;
+    ctx.beginPath(); ctx.arc(sx,sy,this.radius*camera.zoom,0,Math.PI*2);
+    ctx.strokeStyle=warn?`rgba(255,80,80,${pulse})`:`rgba(0,200,255,${0.5*pulse})`;
+    ctx.lineWidth=2+pulse*2; ctx.stroke(); ctx.restore();
+  }
+}
+let zone = new Zone();
+
+// ==============================================================
+//  POWERUP
+// ==============================================================
+class PowerUp {
+  constructor(x,y,type){ this.x=x;this.y=y;this.type=type;this.color=POWERUP_COLORS[type];this.active=true;this.born=Date.now();this.r=10; }
+  update(){ if(Date.now()-this.born>30000) this.active=false; }
+  draw(){
+    const [sx,sy]=w2s(this.x,this.y); const pulse=Math.sin(Date.now()*0.005)*0.25+0.75; const sr=this.r*camera.zoom*pulse;
+    ctx.beginPath();ctx.arc(sx,sy,sr,0,Math.PI*2);ctx.fillStyle=this.color+'88';ctx.fill();
+    ctx.strokeStyle=this.color;ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle='#fff';ctx.font=`bold ${Math.max(8,11*camera.zoom)}px Share Tech Mono`;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText({health:'+',speed:'»',damage:'!',rapid_fire:'*',shield:'o'}[this.type]||'?',sx,sy);
+    ctx.textAlign='left';ctx.textBaseline='alphabetic';
+  }
+}
+
+// ==============================================================
+//  BULLET
+// ==============================================================
+class Bullet {
+  constructor(x,y,tx,ty,damage,ownerId,type='normal'){
+    this.x=x;this.y=y;this.damage=damage;this.ownerId=ownerId;this.type=type;this.active=true;this.trail=[];
+    const d=Math.hypot(tx-x,ty-y),spd=type==='artillery'?6:10;
+    this.vx=d>0?(tx-x)/d*spd:0; this.vy=d>0?(ty-y)/d*spd:0;
+  }
+  update(){ this.trail.push({x:this.x,y:this.y}); if(this.trail.length>6)this.trail.shift(); this.x+=this.vx;this.y+=this.vy; if(this.x<0||this.x>MAP_W||this.y<0||this.y>MAP_H)this.active=false; }
+  draw(){
+    const [sx,sy]=w2s(this.x,this.y);
+    for(let i=0;i<this.trail.length;i++){const[tx2,ty2]=w2s(this.trail[i].x,this.trail[i].y);const a=(i/this.trail.length)*0.6,r=Math.max(1,3*camera.zoom*i/this.trail.length);ctx.beginPath();ctx.arc(tx2,ty2,r,0,Math.PI*2);ctx.fillStyle=`rgba(255,240,100,${a})`;ctx.fill();}
+    ctx.beginPath();ctx.arc(sx,sy,Math.max(2,4*camera.zoom),0,Math.PI*2);
+    ctx.fillStyle=this.type==='artillery'?'#cc44ff':'#ffee44';ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=1;ctx.stroke();
+  }
+}
+
+// ==============================================================
+//  TANK
+// ==============================================================
+let tankIdCounter = 0;
+class Tank {
+  constructor(x,y,className,isPlayer,aiFn,name='Bot'){
+    this.id=tankIdCounter++;this.x=x;this.y=y;this.isPlayer=isPlayer;this.aiFn=aiFn;this.name=name;
+    this.alive=true;this.kills=0;this.damageDealt=0;this.effects={};this.shield=0;this.size=15;
+    this.reloadTimer=0;this.turretAngle=0;this._moveTarget=null;this._shootTarget=null;this._classSet=false;
+    this.applyClass(className);
+  }
+  applyClass(name){
+    const cls=TANK_CLASSES[name]||TANK_CLASSES.balanced; this.className=name; this.color=cls.color;
+    this.maxHealth=cls.health; this.health=Math.min(this.health??cls.health,cls.health);
+    this.speed=cls.speed;this.range=cls.range;this.damage=cls.damage;this.reloadTime=cls.reload;
+  }
+  update(dt){
+    if(!this.alive)return;
+    for(const k in this.effects){ if(k.endsWith('_timer')){ this.effects[k]-=dt; if(this.effects[k]<=0){const b=k.replace('_timer','');delete this.effects[k];delete this.effects[b];}}}
+    if(this.reloadTimer>0)this.reloadTimer-=dt;
+    if(zone.outside(this.x,this.y))this.takeDamage(ZONE_DAMAGE*dt,null);
+    this._moveTarget=null; this._shootTarget=null;
+    if(this.isPlayer){ runPythonAI(this); }
+    else { try{this.aiFn(this);}catch(e){} }
+    if(this._moveTarget){
+      const{x:tx,y:ty}=this._moveTarget,dx=tx-this.x,dy=ty-this.y,dist=Math.hypot(dx,dy);
+      if(dist>2){const spd=this.speed*(this.effects.speed||1);this.x+=dx/dist*spd;this.y+=dy/dist*spd;}
+    }
+    if(this._shootTarget&&this.reloadTimer<=0){
+      const{x:tx,y:ty}=this._shootTarget; this.turretAngle=Math.atan2(ty-this.y,tx-this.x);
+      bullets.push(new Bullet(this.x,this.y,tx,ty,this.damage*(this.effects.damage||1),this.id,this.className==='artillery'?'artillery':'normal'));
+      this.reloadTimer=this.reloadTime*(this.effects.rapid_fire?0.4:1);
+    }
+    this.x=Math.max(ARENA.left+this.size,Math.min(ARENA.right-this.size,this.x));
+    this.y=Math.max(ARENA.top+this.size,Math.min(ARENA.bottom-this.size,this.y));
+  }
+  takeDamage(amt,attackerId){
+    if(!this.alive)return;
+    if(this.shield>0){const ab=Math.min(amt,this.shield);this.shield-=ab;amt-=ab;}
+    this.health-=amt;
+    if(attackerId!==null){const a=tanks.find(t=>t.id===attackerId);if(a)a.damageDealt+=amt;}
+    if(this.health<=0){this.health=0;this.alive=false;const a=tanks.find(t=>t.id===attackerId);if(a){a.kills++;addKillfeed(a.name,this.name);}}
+  }
+  applyPowerup(type){
+    if(type==='health')this.health=Math.min(this.maxHealth,this.health+50);
+    else if(type==='speed'){this.effects.speed=1.6;this.effects.speed_timer=5;}
+    else if(type==='damage'){this.effects.damage=2.0;this.effects.damage_timer=4;}
+    else if(type==='rapid_fire'){this.effects.rapid_fire=true;this.effects.rapid_fire_timer=3;}
+    else if(type==='shield'){this.shield=50;}
+  }
+  draw(){
+    if(!this.alive)return;
+    const[sx,sy]=w2s(this.x,this.y); if(sx<-60||sx>W+60||sy<-60||sy>H+60)return;
+    const sr=this.size*camera.zoom;
+    if(this.shield>0){ctx.beginPath();ctx.arc(sx,sy,sr+6,0,Math.PI*2);ctx.fillStyle='rgba(68,136,255,0.15)';ctx.fill();ctx.strokeStyle='#4488ff';ctx.lineWidth=2;ctx.stroke();}
+    let color=this.color;
+    if(this.effects.damage)color='#ff9922';else if(this.effects.speed)color='#00ffff';
+    ctx.beginPath();ctx.arc(sx,sy,sr,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();
+    ctx.strokeStyle=this.isPlayer?'#fff':'rgba(0,0,0,0.6)';ctx.lineWidth=this.isPlayer?2.5:1.5;ctx.stroke();
+    const tLen=sr+10; ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(sx+Math.cos(this.turretAngle)*tLen,sy+Math.sin(this.turretAngle)*tLen);ctx.strokeStyle='rgba(0,0,0,0.8)';ctx.lineWidth=Math.max(3,5*camera.zoom);ctx.stroke();
+    const bw=34*camera.zoom,bh=5*camera.zoom,bx=sx-bw/2,by=sy-sr-12*camera.zoom,ratio=Math.max(0,this.health/this.maxHealth);
+    ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(bx,by,bw,bh);
+    ctx.fillStyle=ratio>0.5?'#00ff88':ratio>0.25?'#ffcc00':'#ff4444';ctx.fillRect(bx,by,bw*ratio,bh);
+    ctx.fillStyle=this.isPlayer?'#fff':'rgba(200,220,230,0.8)';ctx.font=`${Math.max(9,12*camera.zoom)}px Share Tech Mono`;ctx.textAlign='center';ctx.fillText(this.name,sx,sy-sr-15*camera.zoom);ctx.textAlign='left';
+  }
+}
+
+// ==============================================================
+//  BOT AI (JS — bots don't use Python)
+// ==============================================================
+function createBotAI() {
+  const strategy = Math.random();
+  return function(t) {
+    const mx=t.x, my=t.y;
+    const z={cx:zone.cx,cy:zone.cy,r:zone.radius};
+    const enemies = tanks.filter(o=>o!==t&&o.alive).map(o=>({x:o.x,y:o.y,dist:Math.hypot(o.x-mx,o.y-my)})).filter(e=>e.dist<=t.range);
+    const all = tanks.filter(o=>o!==t&&o.alive).map(o=>({x:o.x,y:o.y,dist:Math.hypot(o.x-mx,o.y-my)}));
+    if(Math.hypot(mx-z.cx,my-z.cy)>z.r-40){t._moveTarget={x:z.cx,y:z.cy};if(enemies.length){const e=enemies.reduce((a,b)=>a.dist<b.dist?a:b);t._shootTarget={x:e.x,y:e.y};}return;}
+    if(enemies.length){
+      const tgt=enemies.reduce((a,b)=>a.dist<b.dist?a:b);
+      t._shootTarget={x:tgt.x,y:tgt.y};
+      if(strategy<0.35){t._moveTarget={x:tgt.x,y:tgt.y};}
+      else if(strategy<0.65){if(tgt.dist>150)t._moveTarget={x:tgt.x,y:tgt.y};else t._moveTarget={x:mx+(mx-tgt.x)*2,y:my+(my-tgt.y)*2};}
+      else{const a=Math.atan2(my-tgt.y,mx-tgt.x)+Math.PI/2*(Math.random()>0.5?1:-1);t._moveTarget={x:mx+Math.cos(a)*70,y:my+Math.sin(a)*70};}
+    } else if(all.length){
+      const n=all.reduce((a,b)=>a.dist<b.dist?a:b);t._moveTarget={x:n.x,y:n.y};
+    } else { t._moveTarget={x:z.cx+(Math.random()-0.5)*200,y:z.cy+(Math.random()-0.5)*200}; }
+  };
+}
+
+// ==============================================================
+//  HELPERS
+// ==============================================================
+function w2s(x,y){ return [(x-camera.x)*camera.zoom+W/2,(y-camera.y)*camera.zoom+H/2]; }
+
+function addKillfeed(killer,victim){
+  const feed=document.getElementById('killfeed');
+  const el=document.createElement('div');el.className='kill-entry';
+  el.innerHTML=`<span class="killer">${killer}</span> ✕ <span class="victim">${victim}</span>`;
+  feed.prepend(el);setTimeout(()=>el.style.opacity='0',3000);setTimeout(()=>el.remove(),4000);
+  if(feed.children.length>6)feed.lastChild.remove();
+}
+
+function spawnPowerup(){
+  const a=Math.random()*Math.PI*2,r=Math.random()*(zone.radius-80)+40;
+  powerups.push(new PowerUp(zone.cx+Math.cos(a)*r,zone.cy+Math.sin(a)*r,POWERUP_TYPES[Math.floor(Math.random()*POWERUP_TYPES.length)]));
+}
+
+function checkCollisions(){
+  for(const b of bullets){if(!b.active)continue;for(const t of tanks){if(!t.alive||t.id===b.ownerId)continue;if(Math.hypot(t.x-b.x,t.y-b.y)<t.size+3){t.takeDamage(b.damage,b.ownerId);b.active=false;break;}}}
+  for(const t of tanks){if(!t.alive)continue;for(const p of powerups){if(!p.active)continue;if(Math.hypot(t.x-p.x,t.y-p.y)<t.size+p.r){t.applyPowerup(p.type);p.active=false;}}}
+}
+
+function drawBackground(){
+  ctx.fillStyle='#1a2a1a';ctx.fillRect(0,0,W,H);
+  const gs=200*camera.zoom,wl=camera.x-W/(2*camera.zoom),wt=camera.y-H/(2*camera.zoom);
+  const ox=(((-wl%200)+200)%200)*camera.zoom,oy=(((-wt%200)+200)%200)*camera.zoom;
+  ctx.strokeStyle='rgba(60,100,60,0.35)';ctx.lineWidth=1;
+  for(let gx=ox-gs;gx<W+gs;gx+=gs){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,H);ctx.stroke();}
+  for(let gy=oy-gs;gy<H+gs;gy+=gs){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke();}
+  const[ax,ay]=w2s(ARENA.left,ARENA.top),aw=(ARENA.right-ARENA.left)*camera.zoom,ah=(ARENA.bottom-ARENA.top)*camera.zoom;
+  ctx.strokeStyle='rgba(255,80,80,0.4)';ctx.lineWidth=2;ctx.strokeRect(ax,ay,aw,ah);
+}
+
+function drawMinimap(){
+  const mw=180,mh=180,sx=mw/MAP_W,sy=mh/MAP_H;
+  minimapCtx.fillStyle='rgba(0,5,10,0.9)';minimapCtx.fillRect(0,0,mw,mh);
+  minimapCtx.beginPath();minimapCtx.arc(zone.cx*sx,zone.cy*sy,zone.radius*sx,0,Math.PI*2);
+  minimapCtx.strokeStyle='#00c8ff88';minimapCtx.lineWidth=1.5;minimapCtx.stroke();
+  for(const t of tanks){if(!t.alive)continue;minimapCtx.beginPath();minimapCtx.arc(t.x*sx,t.y*sy,t.isPlayer?4:2.5,0,Math.PI*2);minimapCtx.fillStyle=t.isPlayer?'#ffee00':t.color;minimapCtx.fill();}
+  const vx=(camera.x-W/(2*camera.zoom))*sx,vy=(camera.y-H/(2*camera.zoom))*sy;
+  minimapCtx.strokeStyle='rgba(255,255,255,0.25)';minimapCtx.lineWidth=1;minimapCtx.strokeRect(vx,vy,W/camera.zoom*sx,H/camera.zoom*sy);
+}
+
+function updateCamera(dt){
+  if(playerTank&&playerTank.alive){camera.x+=(playerTank.x-camera.x)*Math.min(1,8*dt);camera.y+=(playerTank.y-camera.y)*Math.min(1,8*dt);}
+  const ne=tanks.filter(t=>t.alive&&!t.isPlayer&&playerTank&&Math.hypot(t.x-playerTank.x,t.y-playerTank.y)<250).length;
+  camera.targetZoom=Math.max(0.6,1.0-ne*0.08);camera.zoom+=(camera.targetZoom-camera.zoom)*Math.min(1,4*dt);
+}
+
+function updateHUD(gt){
+  const alive=tanks.filter(t=>t.alive).length;
+  const se=document.getElementById('hudStatus');
+  const eo=document.getElementById('endOverlay');
+  if(!playerTank||!playerTank.alive){
+    se.textContent=`ELIMINATED — Rank #${alive+1}`;se.className='hud-status eliminated';
+    if(!eo.classList.contains('active')){eo.classList.add('active');document.getElementById('endTitle').textContent='ELIMINATED';document.getElementById('endTitle').className='end-title eliminated';document.getElementById('endStats').innerHTML=`Rank: #${alive+1}<br>Kills: ${playerTank?.kills??0}<br>Damage: ${Math.floor(playerTank?.damageDealt??0)}`;}
+    gameRunning=false;
+  } else if(alive===1&&playerTank.alive){
+    se.textContent='🏆 VICTORY ROYALE!';se.className='hud-status victory';
+    if(!eo.classList.contains('active')){eo.classList.add('active');document.getElementById('endTitle').textContent='VICTORY ROYALE';document.getElementById('endTitle').className='end-title victory';document.getElementById('endStats').innerHTML=`Kills: ${playerTank.kills}<br>Damage: ${Math.floor(playerTank.damageDealt)}`;}
+    gameRunning=false;
+  } else {se.textContent=`Alive: ${alive}/${tanks.length}`;se.className='hud-status';}
+  const hp=playerTank?playerTank.health/playerTank.maxHealth:0;
+  const hb=document.getElementById('healthBar');hb.style.width=(hp*100)+'%';hb.className='health-bar-inner'+(hp<0.3?' low':'');
+  const rl=playerTank&&playerTank.reloadTimer>0?playerTank.reloadTimer/playerTank.reloadTime:0;
+  document.getElementById('reloadBar').style.width=(rl*100)+'%';
+  document.getElementById('hudStats').textContent=`Kills: ${playerTank?.kills??0} | Damage: ${Math.floor(playerTank?.damageDealt??0)}`;
+  const ze=document.getElementById('zoneInfo');
+  if(!zone.shrinking){ze.textContent=`Zone shrinks in: ${Math.ceil(Math.max(0,SHRINK_START-gt))}s`;ze.className='zone-info';}
+  else{ze.textContent=`⚠ ZONE CLOSING — STAGE ${zone.stage}`;ze.className='zone-info zone-warning';}
+  const ef=document.getElementById('activeEffects');ef.innerHTML='';
+  if(playerTank){const e=playerTank.effects;if(e.speed)ef.innerHTML+='<div class="effect-badge">SPEED</div>';if(e.damage)ef.innerHTML+='<div class="effect-badge">DMG</div>';if(e.rapid_fire)ef.innerHTML+='<div class="effect-badge">RAPID</div>';if(playerTank.shield>0)ef.innerHTML+='<div class="effect-badge">SHIELD</div>';}
+}
+
+// ==============================================================
+//  MENU CLASS GRID
+// ==============================================================
+function buildClassGrid(){
+  const grid=document.getElementById('classGrid');grid.innerHTML='';
+  const statKeys=[{k:'health',max:300,label:'HP'},{k:'speed',max:4.5,label:'SP'},{k:'range',max:500,label:'RG'},{k:'damage',max:60,label:'DM'}];
+  for(const[id,cls] of Object.entries(TANK_CLASSES)){
+    const card=document.createElement('div');card.className='class-card'+(id===selectedClass?' selected':'');card.dataset.classId=id;
+    card.onclick=()=>{selectedClass=id;document.querySelectorAll('.class-card').forEach(c=>c.classList.toggle('selected',c.dataset.classId===id));};
+    const icon=document.createElement('div');icon.className='class-icon';icon.style.background=cls.color;icon.style.boxShadow=`0 0 8px ${cls.color}88`;
+    const name=document.createElement('div');name.className='class-name';name.style.color=cls.color;name.textContent=cls.name.toUpperCase();
+    const desc=document.createElement('div');desc.className='class-desc';desc.textContent=cls.desc;
+    const sb=document.createElement('div');sb.className='stat-bars';
+    for(const s of statKeys){const row=document.createElement('div');row.className='stat-bar-row';row.innerHTML=`<div class="stat-label">${s.label}</div><div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${Math.round(cls[s.k]/s.max*100)}%;background:${cls.color}88"></div></div>`;sb.appendChild(row);}
+    card.append(icon,name,desc,sb);grid.appendChild(card);
+  }
+}
+
+// ==============================================================
+//  GAME LOOP
+// ==============================================================
+let lastTime = 0;
+function gameLoop(ts){
+  const dt=Math.min((ts-lastTime)/1000,0.05);lastTime=ts;
+  if(gameRunning){
+    gameTime+=dt;zone.update(dt,gameTime);
+    if(Date.now()-lastPowerupSpawn>3000&&powerups.filter(p=>p.active).length<8){if(Math.random()<0.4)spawnPowerup();lastPowerupSpawn=Date.now();}
+    for(const t of tanks)t.update(dt);
+    for(const b of bullets)b.update();
+    bullets.splice(0,bullets.length,...bullets.filter(b=>b.active));
+    for(const p of powerups)p.update();
+    powerups.splice(0,powerups.length,...powerups.filter(p=>p.active));
+    checkCollisions();updateCamera(dt);
+  }
+  drawBackground();
+  const[zcx,zcy]=w2s(zone.cx,zone.cy);zone.draw(zcx,zcy);
+  for(const p of powerups)p.draw();
+  for(const t of tanks)if(!t.alive)t.draw();
+  for(const t of tanks)if(t.alive)t.draw();
+  for(const b of bullets)b.draw();
+  if(gameRunning){updateHUD(gameTime);drawMinimap();}
+  requestAnimationFrame(gameLoop);
+}
+
+// ==============================================================
+//  START / RESTART
+// ==============================================================
+function startGame(){
+  document.getElementById('menuScreen').classList.add('hidden');
+  document.getElementById('editorScreen').classList.add('hidden');
+  document.getElementById('gameUI').classList.add('active');
+  document.getElementById('endOverlay').classList.remove('active');
+  document.getElementById('killfeed').innerHTML='';
+  tankIdCounter=0;tanks=[];bullets=[];powerups=[];
+  zone=new Zone();gameTime=0;lastPowerupSpawn=Date.now();
+  gameRunning=true;camera.zoom=1;camera.targetZoom=1;
+
+  // Init Python interpreter with latest code
+  userPyCode = cmEditor ? cmEditor.getValue() : DEFAULT_PY;
+  initSkulpt();
+
+  const angle=Math.random()*Math.PI*2,r=Math.random()*(zone.maxR-200)+100;
+  const px=zone.cx+Math.cos(angle)*r,py=zone.cy+Math.sin(angle)*r;
+  playerTank=new Tank(px,py,selectedClass,true,null,'YOU');
+  tanks.push(playerTank);
+  const classes=Object.keys(TANK_CLASSES);
+  for(let i=1;i<=14;i++){
+    const ba=Math.random()*Math.PI*2,br=Math.random()*(zone.maxR-200)+100;
+    const bx=zone.cx+Math.cos(ba)*br,by=zone.cy+Math.sin(ba)*br;
+    tanks.push(new Tank(bx,by,classes[Math.floor(Math.random()*classes.length)],false,createBotAI(),`Bot_${i}`));
+  }
+  camera.x=playerTank.x;camera.y=playerTank.y;
+}
+function restartGame(){document.getElementById('endOverlay').classList.remove('active');startGame();}
+
+// ==============================================================
+//  KEYBOARD
+// ==============================================================
+window.addEventListener('keydown',e=>{
+  if(e.key==='r'||e.key==='R') restartGame();
+  if((e.key==='e'||e.key==='E')&&!document.getElementById('menuScreen').classList.contains('hidden')===false){
+    if(document.getElementById('editorScreen').classList.contains('hidden'))showEditor();else hideEditor();
+  }
+  if(e.key==='Escape'){
+    gameRunning=false;
+    document.getElementById('menuScreen').classList.remove('hidden');
+    document.getElementById('gameUI').classList.remove('active');
+    document.getElementById('endOverlay').classList.remove('active');
+    document.getElementById('editorScreen').classList.add('hidden');
+  }
+});
+
+// ==============================================================
+//  INIT
+// ==============================================================
+buildClassGrid();
+lastTime=performance.now();
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>
