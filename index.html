@@ -197,24 +197,184 @@ canvas { display:block; }
 'use strict';
 
 // ═══════════════════════════════════════════
-// AUDIO
+// AUDIO — Heavy industrial "BEAST" cannon shot
 // ═══════════════════════════════════════════
 const AC = new (window.AudioContext || window.webkitAudioContext)();
+
 function nbuf(dur) {
-  const sr=AC.sampleRate, b=AC.createBuffer(1,Math.ceil(sr*dur),sr), d=b.getChannelData(0);
-  for (let i=0;i<d.length;i++) d[i]=Math.random()*2-1; return b;
+  const sr = AC.sampleRate;
+  const b = AC.createBuffer(1, Math.ceil(sr * dur), sr);
+  const d = b.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  return b;
 }
-function playShot(pm=1) {
-  if (AC.state==='suspended') AC.resume();
-  const t=AC.currentTime;
-  const m=AC.createDynamicsCompressor(); m.threshold.value=-6; m.ratio.value=20; m.attack.value=0.001; m.release.value=0.1; m.connect(AC.destination);
-  const F=fn=>{try{fn();}catch(e){}};
-  F(()=>{const s=AC.createBufferSource();s.buffer=nbuf(0.03);const f=AC.createBiquadFilter();f.type='highpass';f.frequency.value=3000*pm;const g=AC.createGain();g.gain.setValueAtTime(3.5,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.025);s.connect(f);f.connect(g);g.connect(m);s.start(t);s.stop(t+0.03);});
-  F(()=>{const s=AC.createBufferSource();s.buffer=nbuf(0.12);const f=AC.createBiquadFilter();f.type='bandpass';f.frequency.setValueAtTime(2200*pm,t);f.frequency.exponentialRampToValueAtTime(600*pm,t+0.1);f.Q.value=1.2;const w=AC.createWaveShaper();const c=new Float32Array(512);for(let i=0;i<512;i++){const x=(i*2)/512-1;c[i]=(Math.PI+300)*x/(Math.PI+300*Math.abs(x));}w.curve=c;const g=AC.createGain();g.gain.setValueAtTime(2.8,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.12);s.connect(f);f.connect(w);w.connect(g);g.connect(m);s.start(t);s.stop(t+0.13);});
-  F(()=>{const o=AC.createOscillator();o.type='sine';o.frequency.setValueAtTime(220/pm,t);o.frequency.exponentialRampToValueAtTime(28/pm,t+0.18);const g=AC.createGain();g.gain.setValueAtTime(2.2,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.2);o.connect(g);g.connect(m);o.start(t);o.stop(t+0.22);});
-  F(()=>{const s=AC.createBufferSource();s.buffer=nbuf(0.3);const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.setValueAtTime(180/pm,t);f.frequency.exponentialRampToValueAtTime(40/pm,t+0.25);const g=AC.createGain();g.gain.setValueAtTime(1.6,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.3);s.connect(f);f.connect(g);g.connect(m);s.start(t);s.stop(t+0.32);});
-  F(()=>{const s=AC.createBufferSource();s.buffer=nbuf(0.65);const b1=AC.createBiquadFilter();b1.type='bandpass';b1.frequency.setValueAtTime(900*pm,t+0.05);b1.frequency.exponentialRampToValueAtTime(200*pm,t+0.65);b1.Q.value=8;const g=AC.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.9,t+0.05);g.gain.exponentialRampToValueAtTime(0.001,t+0.7);const dl=AC.createDelay(0.5);dl.delayTime.value=0.04;const fb=AC.createGain();fb.gain.value=0.45;s.connect(b1);b1.connect(g);g.connect(dl);dl.connect(fb);fb.connect(dl);g.connect(m);dl.connect(m);s.start(t+0.04);s.stop(t+0.72);});
-  F(()=>{const s=AC.createBufferSource();s.buffer=nbuf(0.8);const f=AC.createBiquadFilter();f.type='bandpass';f.frequency.setValueAtTime(500*pm,t+0.3);f.frequency.exponentialRampToValueAtTime(100*pm,t+1.0);f.Q.value=3;const g=AC.createGain();g.gain.setValueAtTime(0,t+0.28);g.gain.linearRampToValueAtTime(0.35,t+0.35);g.gain.exponentialRampToValueAtTime(0.001,t+1.1);s.connect(f);f.connect(g);g.connect(m);s.start(t+0.28);s.stop(t+1.15);});
+
+function playShot(pm = 1) {
+  if (AC.state === 'suspended') AC.resume();
+  const t = AC.currentTime;
+
+  // Master limiter/compressor
+  const comp = AC.createDynamicsCompressor();
+  comp.threshold.value = -3;
+  comp.knee.value = 3;
+  comp.ratio.value = 20;
+  comp.attack.value = 0.001;
+  comp.release.value = 0.15;
+  comp.connect(AC.destination);
+
+  const master = AC.createGain();
+  master.gain.value = 1.4;
+  master.connect(comp);
+
+  const F = fn => { try { fn(); } catch(e) {} };
+
+  // ── 1. SUB CANNON THUD — deep chest-punch body ──
+  F(() => {
+    const o = AC.createOscillator();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(85 / pm, t);
+    o.frequency.exponentialRampToValueAtTime(28 / pm, t + 0.25);
+    const g = AC.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(4.5, t + 0.004);
+    g.gain.exponentialRampToValueAtTime(2.8, t + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+    o.connect(g); g.connect(master);
+    o.start(t); o.stop(t + 0.6);
+  });
+
+  // ── 2. SECOND SUB LAYER — even deeper rumble ──
+  F(() => {
+    const o = AC.createOscillator();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(42 / pm, t);
+    o.frequency.exponentialRampToValueAtTime(18 / pm, t + 0.4);
+    const g = AC.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(3.5, t + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.7);
+    const lp = AC.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 120;
+    o.connect(lp); lp.connect(g); g.connect(master);
+    o.start(t); o.stop(t + 0.75);
+  });
+
+  // ── 3. TRANSIENT ATTACK CRACK — sharp metallic slam ──
+  F(() => {
+    const s = AC.createBufferSource();
+    s.buffer = nbuf(0.04);
+    const hp = AC.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 1800 * pm;
+    const dist = AC.createWaveShaper();
+    const curve = new Float32Array(512);
+    for (let i = 0; i < 512; i++) {
+      const x = (i * 2) / 512 - 1;
+      curve[i] = x < 0 ? -Math.pow(Math.abs(x), 0.5) : Math.pow(x, 0.5);
+    }
+    dist.curve = curve;
+    const g = AC.createGain();
+    g.gain.setValueAtTime(6.0, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.035);
+    s.connect(hp); hp.connect(dist); dist.connect(g); g.connect(master);
+    s.start(t); s.stop(t + 0.05);
+  });
+
+  // ── 4. MID BODY — the meaty mechanical "CHUNK" ──
+  F(() => {
+    const s = AC.createBufferSource();
+    s.buffer = nbuf(0.18);
+    const bp = AC.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.setValueAtTime(320 * pm, t + 0.005);
+    bp.frequency.exponentialRampToValueAtTime(80 * pm, t + 0.18);
+    bp.Q.value = 2.5;
+    const dist = AC.createWaveShaper();
+    const c2 = new Float32Array(512);
+    for (let i = 0; i < 512; i++) {
+      const x = (i * 2) / 512 - 1;
+      c2[i] = (Math.PI + 600) * x / (Math.PI + 600 * Math.abs(x));
+    }
+    dist.curve = c2;
+    const g = AC.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(4.2, t + 0.005);
+    g.gain.exponentialRampToValueAtTime(2.5, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+    s.connect(bp); bp.connect(dist); dist.connect(g); g.connect(master);
+    s.start(t); s.stop(t + 0.25);
+  });
+
+  // ── 5. EXPLOSION BODY — the expanding pressure wave ──
+  F(() => {
+    const s = AC.createBufferSource();
+    s.buffer = nbuf(0.9);
+    const lp = AC.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.setValueAtTime(600 / pm, t + 0.01);
+    lp.frequency.exponentialRampToValueAtTime(60 / pm, t + 0.85);
+    lp.Q.value = 0.5;
+    const g = AC.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(3.8, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(1.8, t + 0.08);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 1.0);
+    s.connect(lp); lp.connect(g); g.connect(master);
+    s.start(t + 0.005); s.stop(t + 1.05);
+  });
+
+  // ── 6. REVERB TAIL — distant echo / room resonance ──
+  F(() => {
+    const s = AC.createBufferSource();
+    s.buffer = nbuf(1.4);
+    const bp = AC.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.setValueAtTime(280 / pm, t + 0.06);
+    bp.frequency.exponentialRampToValueAtTime(60 / pm, t + 1.2);
+    bp.Q.value = 5;
+    const delay = AC.createDelay(0.5);
+    delay.delayTime.value = 0.055;
+    const fb = AC.createGain();
+    fb.gain.value = 0.52;
+    const g = AC.createGain();
+    g.gain.setValueAtTime(0, t + 0.04);
+    g.gain.linearRampToValueAtTime(1.2, t + 0.09);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+    s.connect(bp); bp.connect(g);
+    g.connect(delay); delay.connect(fb); fb.connect(delay);
+    g.connect(master); delay.connect(master);
+    s.start(t + 0.04); s.stop(t + 1.6);
+  });
+
+  // ── 7. HIGH SHRAPNEL / AIR ESCAPE — metallic hiss ──
+  F(() => {
+    const s = AC.createBufferSource();
+    s.buffer = nbuf(0.35);
+    const hp = AC.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.setValueAtTime(5000 * pm, t);
+    hp.frequency.exponentialRampToValueAtTime(800 * pm, t + 0.3);
+    const g = AC.createGain();
+    g.gain.setValueAtTime(0.7, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.38);
+    s.connect(hp); hp.connect(g); g.connect(master);
+    s.start(t + 0.01); s.stop(t + 0.4);
+  });
+
+  // ── 8. MECHANICAL CLICK — bolt action / ejection ──
+  F(() => {
+    const o = AC.createOscillator();
+    o.type = 'square';
+    o.frequency.setValueAtTime(380 * pm, t + 0.03);
+    o.frequency.exponentialRampToValueAtTime(120 * pm, t + 0.09);
+    const g = AC.createGain();
+    g.gain.setValueAtTime(0, t + 0.03);
+    g.gain.linearRampToValueAtTime(1.1, t + 0.035);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+    o.connect(g); g.connect(master);
+    o.start(t + 0.03); o.stop(t + 0.13);
+  });
 }
 
 // ═══════════════════════════════════════════
@@ -318,12 +478,12 @@ const MY_ID = Math.random().toString(36).slice(2,10);
 let mqttClient = null;
 let mqttConnected = false;
 let lobbyCode = null;
-let lobbyPlayers = {}; // id -> {name, className, isBot, ready}
+let lobbyPlayers = {};
 let isLobbyHost = false;
 let lobbyCountdown = 60;
 let lobbyTimer = null;
 let pendingMode = null;
-let remoteEntities = {}; // id -> entity object for online sync
+let remoteEntities = {};
 let onlineMode = false;
 
 function genCode() {
@@ -335,7 +495,6 @@ function mqttTopic(code, sub) { return `tankroyale/${code}/${sub}`; }
 
 function initMQTT(onConnected) {
   if (mqttClient && mqttConnected) { onConnected(); return; }
-  // Use EMQX public broker (free, no signup)
   const clientId = 'tr_' + MY_ID;
   mqttClient = new Paho.MQTT.Client('broker.emqx.io', 8084, '/mqtt', clientId);
   mqttClient.onConnectionLost = () => {
@@ -413,11 +572,9 @@ function createLobby(clsName) {
   lobbyPlayers = {};
   lobbyPlayers[MY_ID] = {id: MY_ID, name: pd.name || ('P_'+MY_ID.slice(0,4).toUpperCase()), className: clsName, isBot: false};
   showLobbyScreen();
-  // Subscribe to lobby topics
   mqttSubscribe(mqttTopic(lobbyCode, 'join'));
   mqttSubscribe(mqttTopic(lobbyCode, 'leave'));
   mqttSubscribe(mqttTopic(lobbyCode, 'start'));
-  // Announce self
   mqttPublish(mqttTopic(lobbyCode, 'join'), {id:MY_ID, name:lobbyPlayers[MY_ID].name, className:clsName, isBot:false});
   startLobbyCountdown();
 }
@@ -427,7 +584,6 @@ function doJoinLobby() {
   if (code.length !== 4) { document.getElementById('joinStatus').textContent = 'ENTER 4-CHARACTER CODE'; return; }
   if (!mqttConnected) { document.getElementById('joinStatus').textContent = 'NOT CONNECTED — TRY AGAIN'; return; }
   document.getElementById('joinStatus').textContent = 'JOINING...';
-  // We need a class selected — go to class screen first
   pendingMode = 'online_join_' + code;
   document.getElementById('onlineScreen').style.display = 'none';
   document.getElementById('classScreen').style.display = 'flex';
@@ -443,14 +599,12 @@ function joinLobby(code, clsName) {
   mqttSubscribe(mqttTopic(lobbyCode, 'join'));
   mqttSubscribe(mqttTopic(lobbyCode, 'leave'));
   mqttSubscribe(mqttTopic(lobbyCode, 'start'));
-  // Announce self
   mqttPublish(mqttTopic(lobbyCode, 'join'), {id:MY_ID, name:lobbyPlayers[MY_ID].name, className:clsName, isBot:false});
 }
 
 function handlePlayerJoin(data) {
   if (data.id === MY_ID) return;
   lobbyPlayers[data.id] = data;
-  // If I'm host, respond with my info too so the joiner knows I'm here
   if (isLobbyHost) {
     mqttPublish(mqttTopic(lobbyCode, 'join'), {id:MY_ID, name:lobbyPlayers[MY_ID].name, className:lobbyPlayers[MY_ID].className, isBot:false});
   }
@@ -463,11 +617,9 @@ function handlePlayerLeave(data) {
 }
 
 function handleGameStart(data) {
-  // Host broadcasts the full initial setup: player slots, map seed, etc.
-  if (isLobbyHost) return; // host already started
+  if (isLobbyHost) return;
   clearInterval(lobbyTimer);
   document.getElementById('lobbyScreen').style.display = 'none';
-  // data.players is the ordered list of all slots (real + bots)
   startOnlineGame(data);
 }
 
@@ -485,7 +637,6 @@ function startLobbyCountdown() {
 }
 
 function launchOnlineLobby() {
-  // Build full player list: real players + fill bots
   const realPlayers = Object.values(lobbyPlayers).filter(p => !p.isBot);
   const allSlots = [...realPlayers];
   const ck = Object.keys(CLASSES);
@@ -493,9 +644,7 @@ function launchOnlineLobby() {
   while (allSlots.length < MAX_P) {
     allSlots.push({id: 'bot_'+allSlots.length, name:'BOT_'+Math.random().toString(36).slice(2,5).toUpperCase(), className: ck[Math.floor(Math.random()*ck.length)], isBot: true});
   }
-  // Broadcast start
   mqttPublish(mqttTopic(lobbyCode, 'start'), {players: allSlots, mapSeed});
-  // Subscribe to game state
   mqttSubscribe(mqttTopic(lobbyCode, 'state'));
   mqttSubscribe(mqttTopic(lobbyCode, 'event'));
   document.getElementById('lobbyScreen').style.display = 'none';
@@ -535,7 +684,6 @@ function updateLobbyUI() {
   for (const p of Object.values(lobbyPlayers)) {
     if (!p.isBot) html += `<div class="playerEntry"><span class="pname">${p.name}</span><span class="pclass">${p.className}</span></div>`;
   }
-  // Show bot placeholders
   for (let i=0; i<Math.min(botCount, 3); i++) html += `<div class="playerEntry isBot"><span class="pname">WAITING...</span><span class="pclass">BOT SLOT</span></div>`;
   if (botCount > 3) html += `<div class="playerEntry isBot"><span class="pname">+${botCount-3} MORE BOT SLOTS</span><span class="pclass"></span></div>`;
   list.innerHTML = html;
@@ -554,7 +702,6 @@ function handlePlayerState(data) {
   if (data.id === MY_ID) return;
   const ent = entities.find(e => e.netId === data.id);
   if (!ent || !ent.alive) return;
-  // Smooth remote positions
   ent._nx = data.x; ent._ny = data.y;
   ent.turretAngle = data.ta;
   ent.hp = data.hp;
@@ -565,10 +712,7 @@ function handlePlayerState(data) {
 function handleGameEvent(data) {
   if (data.type === 'shoot' && data.id !== MY_ID) {
     const ent = entities.find(e => e.netId === data.id);
-    if (ent && ent.alive) {
-      // Spawn their bullet locally
-      spawnRemoteBullet(ent, data.angle);
-    }
+    if (ent && ent.alive) spawnRemoteBullet(ent, data.angle);
   }
   if (data.type === 'ability' && data.id !== MY_ID) {
     const ent = entities.find(e => e.netId === data.id);
@@ -615,37 +759,79 @@ let selectedClass='WARRIOR';
 let gameStartTime, sessionKills=0, sessionXP=0;
 
 // ═══════════════════════════════════════════
-// MENU CROSSHAIR
+// MENU CROSSHAIR — always visible, tracks everywhere
 // ═══════════════════════════════════════════
 const menuCvs = document.getElementById('menuCvs');
 const mxc = menuCvs.getContext('2d');
 menuCvs.width=W; menuCvs.height=H;
+// Ensure menuCvs covers the full window and never blocks clicks
+menuCvs.style.width = W + 'px';
+menuCvs.style.height = H + 'px';
+menuCvs.style.pointerEvents = 'none';
+
 let menuMouse={x:W/2,y:H/2}, menuFlash=0;
+let menuCrsVisible = true; // always show in menu
+
 function drawMenuCrosshair() {
   mxc.clearRect(0,0,W,H);
-  const x=menuMouse.x, y=menuMouse.y, sz=16, gap=6;
+  if (!menuCrsVisible) return;
+  const x=menuMouse.x, y=menuMouse.y;
+  const sz=16, gap=6;
+  const flash = menuFlash > 0;
+
   mxc.save();
-  if (menuFlash>0) { mxc.shadowColor='#fff'; mxc.shadowBlur=14; }
-  mxc.strokeStyle='#fff'; mxc.lineWidth=menuFlash>0?2.5:1.5; mxc.globalAlpha=menuFlash>0?1:0.65;
+  // Outer glow when flashing
+  if (flash) {
+    mxc.shadowColor='rgba(255,255,255,0.6)';
+    mxc.shadowBlur=18;
+  }
+  mxc.strokeStyle='rgba(255,255,255,' + (flash ? '1' : '0.75') + ')';
+  mxc.lineWidth = flash ? 2.5 : 1.5;
   mxc.beginPath();
-  mxc.moveTo(x-sz-gap,y); mxc.lineTo(x-gap,y);
-  mxc.moveTo(x+gap,y);    mxc.lineTo(x+sz+gap,y);
-  mxc.moveTo(x,y-sz-gap); mxc.lineTo(x,y-gap);
-  mxc.moveTo(x,y+gap);    mxc.lineTo(x,y+sz+gap);
+  mxc.moveTo(x-sz-gap, y); mxc.lineTo(x-gap, y);
+  mxc.moveTo(x+gap, y);    mxc.lineTo(x+sz+gap, y);
+  mxc.moveTo(x, y-sz-gap); mxc.lineTo(x, y-gap);
+  mxc.moveTo(x, y+gap);    mxc.lineTo(x, y+sz+gap);
   mxc.stroke();
-  mxc.beginPath(); mxc.arc(x,y,menuFlash>0?2.5:1.5,0,Math.PI*2); mxc.fillStyle='#fff'; mxc.fill();
+
+  // Center dot
+  mxc.shadowBlur = flash ? 10 : 0;
+  mxc.beginPath();
+  mxc.arc(x, y, flash ? 2.5 : 1.5, 0, Math.PI*2);
+  mxc.fillStyle = '#fff';
+  mxc.fill();
   mxc.restore();
-  if (menuFlash>0) menuFlash--;
+
+  if (menuFlash > 0) menuFlash--;
 }
+
 function menuLoop() {
-  if (!gameRunning) { drawMenuCrosshair(); requestAnimationFrame(menuLoop); }
+  if (!gameRunning) {
+    drawMenuCrosshair();
+    requestAnimationFrame(menuLoop);
+  }
 }
 requestAnimationFrame(menuLoop);
-window.addEventListener('mousemove', e => { menuMouse.x=e.clientX; menuMouse.y=e.clientY; });
+
+// Track mouse across the ENTIRE window — no gaps
+window.addEventListener('mousemove', e => {
+  menuMouse.x = e.clientX;
+  menuMouse.y = e.clientY;
+  // Also keep in-game mouse updated when game is running
+  if (gameRunning) {
+    mouseScreen.x = e.clientX;
+    mouseScreen.y = e.clientY;
+    mouseWorld.x = e.clientX + camera.x;
+    mouseWorld.y = e.clientY + camera.y;
+  }
+});
+
 document.addEventListener('mousedown', e => {
   if (gameRunning) return;
-  if (e.button===0 && e.target.tagName!=='BUTTON' && e.target.tagName!=='INPUT' && !e.target.closest('.classCard')) {
-    playShot(); menuFlash=8;
+  // Play shot and flash on any left-click when not on interactive elements
+  if (e.button === 0 && e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT' && !e.target.closest('.classCard')) {
+    playShot();
+    menuFlash = 8;
   }
 });
 
@@ -654,6 +840,7 @@ document.addEventListener('mousedown', e => {
 // ═══════════════════════════════════════════
 function showMenu() {
   gameRunning=false; onlineMode=false;
+  menuCrsVisible = true;
   if (netStateInterval) { clearInterval(netStateInterval); netStateInterval=null; }
   ['classScreen','onlineScreen','lobbyScreen','deathScreen','winScreen'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display='none';
@@ -661,6 +848,7 @@ function showMenu() {
   document.getElementById('menu').style.display='flex';
   updateMenuRankCard();
   document.getElementById('statsRow').textContent=`${pd.games} GAMES  ·  ${pd.kills} KILLS  ·  ${pd.wins} WINS`;
+  requestAnimationFrame(menuLoop);
 }
 
 function updateMenuRankCard() {
@@ -731,11 +919,7 @@ function confirmClass() {
   if (pendingMode==='bot') {
     startGame('bot', selectedClass);
   } else if (pendingMode==='online_create') {
-    if (!mqttConnected) {
-      // Fallback to bot if no connection
-      startGame('bot', selectedClass);
-      return;
-    }
+    if (!mqttConnected) { startGame('bot', selectedClass); return; }
     createLobby(selectedClass);
   } else if (pendingMode && pendingMode.startsWith('online_join_')) {
     const code = pendingMode.split('_')[2];
@@ -791,6 +975,7 @@ function createTank(x,y,isPlayer,id,clsName,netId) {
 
 function startGame(mode, clsName) {
   gameMode=mode; gameRunning=true; onlineMode=false;
+  menuCrsVisible=false;
   entities=[]; bullets=[]; particles=[]; pickups=[]; killFeedEntries=[];
   sessionKills=0; sessionXP=0;
   zoneRadius=MAP*0.5; zoneTargetRadius=zoneRadius*0.55;
@@ -810,15 +995,15 @@ function startGame(mode, clsName) {
 }
 
 function startOnlineGame(data) {
-  // data = {players: [{id,name,className,isBot},...], mapSeed}
   gameMode='online'; gameRunning=true; onlineMode=true;
+  menuCrsVisible=false;
   entities=[]; bullets=[]; particles=[]; pickups=[]; killFeedEntries=[];
   sessionKills=0; sessionXP=0;
   zoneRadius=MAP*0.5; zoneTargetRadius=zoneRadius*0.55;
   zoneCenter={x:MAP/2,y:MAP/2};
   zoneShrinkStart=Date.now()+zoneShrinkDelay;
   gameStartTime=Date.now();
-  generateMap(data.mapSeed); // seeded so all players get same map
+  generateMap(data.mapSeed);
 
   let myIdx=data.players.findIndex(p=>p.id===MY_ID);
   if (myIdx===-1) myIdx=0;
@@ -837,11 +1022,8 @@ function startOnlineGame(data) {
   camera.x=player.x-W/2; camera.y=player.y-H/2;
   document.getElementById('upgradePanel').style.display='none';
 
-  // Subscribe to game state channels
   mqttSubscribe(mqttTopic(lobbyCode,'state'));
   mqttSubscribe(mqttTopic(lobbyCode,'event'));
-
-  // Broadcast own position every 50ms
   netStateInterval = setInterval(broadcastState, 50);
 
   updateHUD();
@@ -970,9 +1152,10 @@ function killTank(tank, killer) {
     const xg=50+tank.level*15; giveXP(killer,xg); showXPFloat(`+${xg} XP`,killer); sessionKills++;
   }
   if (tank.isPlayer) {
+    menuCrsVisible=true;
     if (netStateInterval) { clearInterval(netStateInterval); netStateInterval=null; }
     const aliveNow = entities.filter(e=>e.alive).length;
-    const placement = aliveNow + 1; // player just died, so their placement is survivors+1
+    const placement = aliveNow + 1;
     const elapsed = Math.floor((Date.now()-gameStartTime)/1000);
     setTimeout(()=>{
       document.getElementById('endStats').innerHTML=
@@ -980,10 +1163,13 @@ function killTank(tank, killer) {
       renderRpResult('rpResult', placement, sessionKills, false);
       document.getElementById('deathScreen').style.display='flex';
     }, 1000);
-    gameRunning=false; return;
+    gameRunning=false;
+    requestAnimationFrame(menuLoop);
+    return;
   }
   const alive=entities.filter(e=>e.alive);
   if (alive.length===1&&alive[0].isPlayer) {
+    menuCrsVisible=true;
     if (netStateInterval) { clearInterval(netStateInterval); netStateInterval=null; }
     const elapsed = Math.floor((Date.now()-gameStartTime)/1000);
     setTimeout(()=>{
@@ -993,6 +1179,7 @@ function killTank(tank, killer) {
       document.getElementById('winScreen').style.display='flex';
     }, 500);
     gameRunning=false;
+    requestAnimationFrame(menuLoop);
   }
 }
 
@@ -1033,16 +1220,13 @@ function gameLoop(ts) {
 function update(dt) {
   updatePlayer();
   const now=Date.now();
-  // Zone
   if (now>zoneShrinkStart) {
     zoneRadius+=(zoneTargetRadius-zoneRadius)*0.0015;
     if (Math.abs(zoneRadius-zoneTargetRadius)<5) { zoneShrinkStart=now+zoneShrinkDelay; zoneTargetRadius=Math.max(80,zoneRadius*0.62); }
   }
-  // Tanks
   for (const tank of entities) {
     if (!tank.alive) continue;
     if (tank.isRemote) {
-      // Smoothly interpolate remote player positions
       if (tank._nx!==null) { tank.x+=(tank._nx-tank.x)*0.25; tank.y+=(tank._ny-tank.y)*0.25; }
       continue;
     }
@@ -1053,17 +1237,15 @@ function update(dt) {
     const dz=dist(tank.x,tank.y,zoneCenter.x,zoneCenter.y);
     if (dz>zoneRadius) { tank.hp-=0.18; if(tank.hp<=0) killTank(tank,null); }
   }
-  // Bullets
   for (let i=bullets.length-1;i>=0;i--) {
     const b=bullets[i]; b.x+=b.vx; b.y+=b.vy; b.life--;
     if (b.x<0||b.x>MAP||b.y<0||b.y>MAP||b.life<=0) { bullets.splice(i,1); continue; }
     let gone=false;
     for (const r of rocks) { if(b.x>r.x&&b.x<r.x+r.w&&b.y>r.y&&b.y<r.y+r.h){spawnExplosion(b.x,b.y,5);bullets.splice(i,1);gone=true;break;} }
     if (gone) continue;
-    // Remote bullets only damage local entities (bots + player)
     for (const tank of entities) {
       if (!tank.alive||tank===b.owner||tank.shielded) continue;
-      if (tank.isRemote) continue; // remote players handle their own damage
+      if (tank.isRemote) continue;
       if (dist(b.x,b.y,tank.x,tank.y)<tank.radius) {
         tank.hp-=b.damage; spawnExplosion(b.x,b.y,6);
         if (b.split&&b.hits===0) fireSplit(b);
@@ -1110,7 +1292,6 @@ function drawTank(c,tank) {
   if(tank.shielded){c.beginPath();c.arc(0,0,r+9,0,Math.PI*2);c.strokeStyle='rgba(255,255,255,0.55)';c.lineWidth=3;c.stroke();}
   c.globalAlpha=tank.cloaked?0.3:1;
   c.beginPath();c.arc(3,3,r,0,Math.PI*2);c.fillStyle='rgba(0,0,0,0.35)';c.fill();
-  // Remote players get a slightly different tint
   const bodyColor = tank.isPlayer?'#fff':tank.isRemote?'#e0e0e0':'#b8b8b8';
   c.beginPath();c.arc(0,0,r,0,Math.PI*2);c.fillStyle=bodyColor;c.fill();c.lineWidth=2.5;c.strokeStyle='#000';c.stroke();
   c.font=`${Math.round(r*0.85)}px Courier New`;c.fillStyle='#000';c.textAlign='center';c.textBaseline='middle';c.fillText(tank.classIcon,0,0);
@@ -1123,7 +1304,6 @@ function drawTank(c,tank) {
   c.beginPath();c.arc(0,0,r*0.56,0,Math.PI*2);c.fillStyle='#000';c.fill();
   c.restore();
   if(tank.isPlayer||tank.hp<tank.maxHp){const bw=r*2.5,bh=3,bx=-r*1.25,by=-r-11;c.fillStyle='#111';c.fillRect(bx,by,bw,bh);const pct=Math.max(0,tank.hp/tank.maxHp);c.fillStyle=pct>0.5?'#fff':pct>0.25?'#aaa':'#777';c.fillRect(bx,by,bw*pct,bh);}
-  // Show name for remote players
   if (tank.isRemote) { c.font='8px Courier New'; c.fillStyle='#777'; c.textAlign='center'; c.fillText(tank.name, 0, -r-20); }
   else if(tank.level>1){c.font='8px Courier New';c.fillStyle='#666';c.textAlign='center';c.fillText('LV'+tank.level,0,-r-20);}
   c.globalAlpha=1; c.restore();
@@ -1162,7 +1342,12 @@ window.addEventListener('keydown', e => {
   if ((e.key==='1'||e.key===' ')&&player&&player.alive&&gameRunning) { e.preventDefault(); useAbility(player); }
 });
 window.addEventListener('keyup', e => { keys[e.key.toLowerCase()]=false; });
-canvas.addEventListener('mousemove', e => { mouseScreen.x=e.clientX; mouseScreen.y=e.clientY; mouseWorld.x=e.clientX+camera.x; mouseWorld.y=e.clientY+camera.y; });
+
+// Note: mousemove is handled above in the crosshair section (window-level listener)
+canvas.addEventListener('mousemove', e => {
+  mouseScreen.x=e.clientX; mouseScreen.y=e.clientY;
+  mouseWorld.x=e.clientX+camera.x; mouseWorld.y=e.clientY+camera.y;
+});
 canvas.addEventListener('mousedown', e => {
   if (e.button===0) {
     mouseDown=true;
