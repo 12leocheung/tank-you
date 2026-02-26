@@ -81,12 +81,24 @@ canvas{display:block}
 #lobbyCode{font-family:'Orbitron',sans-serif;font-size:52px;letter-spacing:14px;font-weight:900;color:var(--g);margin-bottom:6px;text-shadow:0 0 20px var(--g)}
 #lobbyCodeLabel{font-size:9px;letter-spacing:3px;color:rgba(57,255,20,0.28);margin-bottom:22px;cursor:pointer}
 #lobbyCodeLabel:hover{color:var(--g)}
-#countdown{font-family:'Orbitron',sans-serif;font-size:18px;letter-spacing:5px;color:rgba(57,255,20,0.55);margin-bottom:16px}
-#playerList{display:flex;flex-direction:column;gap:5px;margin-bottom:18px;min-height:70px;min-width:320px}
-.playerEntry{font-size:10px;letter-spacing:2px;border:1px solid rgba(57,255,20,0.13);padding:6px 12px;display:flex;justify-content:space-between;align-items:center;background:rgba(57,255,20,0.018)}
-.playerEntry .pname{color:rgba(57,255,20,0.75)}
-.playerEntry .pclass{color:rgba(57,255,20,0.28);font-size:8px;letter-spacing:3px}
-.playerEntry.isBot{opacity:0.28}
+#countdownWrap{text-align:center;margin-bottom:16px}
+#countdown{font-family:'Orbitron',sans-serif;font-size:42px;letter-spacing:5px;color:var(--g);text-shadow:0 0 20px var(--g),0 0 40px rgba(57,255,20,0.3);line-height:1}
+#countdown.urgent{color:var(--r);text-shadow:0 0 20px var(--r),0 0 40px rgba(255,58,58,0.3);animation:zp 0.5s infinite}
+#countdownLabel{font-size:8px;letter-spacing:4px;color:rgba(57,255,20,0.25);margin:4px 0 8px}
+#countdownBar{width:320px;height:3px;background:rgba(57,255,20,0.08);border:1px solid rgba(57,255,20,0.12);margin:0 auto}
+#countdownFill{height:100%;background:var(--g);width:100%;transition:width 1s linear;box-shadow:0 0 8px var(--g)}
+#countdownFill.urgent{background:var(--r);box-shadow:0 0 8px var(--r)}
+#lobbyListHeader{display:flex;justify-content:space-between;align-items:center;width:360px;margin-bottom:6px;font-size:8px;letter-spacing:3px;color:rgba(57,255,20,0.28);padding:0 2px}
+#playerList{display:flex;flex-direction:column;gap:4px;margin-bottom:16px;min-height:80px;width:360px;max-height:260px;overflow-y:auto}
+.playerEntry{font-size:10px;letter-spacing:2px;border:1px solid rgba(57,255,20,0.13);padding:7px 12px;display:flex;justify-content:space-between;align-items:center;background:rgba(57,255,20,0.018);animation:fadeSlide .25s ease}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.playerEntry .pname{color:rgba(57,255,20,0.85);display:flex;align-items:center;gap:6px}
+.playerEntry .pname .picon{font-size:14px}
+.playerEntry .pright{display:flex;gap:10px;align-items:center}
+.playerEntry .pclass{color:rgba(57,255,20,0.38);font-size:8px;letter-spacing:3px}
+.playerEntry .phost{font-size:7px;letter-spacing:2px;color:var(--a);border:1px solid rgba(255,184,0,0.3);padding:1px 5px}
+.playerEntry.isBot{opacity:0.22;border-style:dashed}
+.playerEntry.isSelf{border-color:rgba(57,255,20,0.4);background:rgba(57,255,20,0.04)}
 #joinInput{background:rgba(57,255,20,0.035);border:1px solid rgba(57,255,20,0.22);color:var(--g);font-family:'Orbitron',sans-serif;font-size:22px;letter-spacing:8px;padding:10px 18px;text-align:center;text-transform:uppercase;width:200px;margin-bottom:8px}
 #joinInput:focus{outline:none;border-color:var(--g);box-shadow:0 0 16px rgba(57,255,20,0.18)}
 #joinInput::placeholder{color:rgba(57,255,20,0.16);font-size:14px;letter-spacing:4px}
@@ -189,10 +201,18 @@ canvas{display:block}
   <div id="lobbyScreen" style="display:none">
     <div class="ctl"></div><div class="ctr"></div><div class="cbl"></div><div class="cbr"></div>
     <h2>LOBBY</h2>
-    <div class="sub">SHARE CODE · BOTS FILL EMPTY SLOTS</div>
+    <div class="sub">SHARE CODE · BOTS FILL EMPTY SLOTS WHEN TIMER ENDS</div>
     <div id="lobbyCode">----</div>
     <div id="lobbyCodeLabel">LOBBY CODE — CLICK TO COPY</div>
-    <div id="countdown">60s</div>
+    <div id="countdownWrap">
+      <div id="countdown">60</div>
+      <div id="countdownLabel">SECONDS TO LAUNCH</div>
+      <div id="countdownBar"><div id="countdownFill"></div></div>
+    </div>
+    <div id="lobbyListHeader">
+      <span>PLAYERS</span>
+      <span id="lobbyCountLabel">0 / 20</span>
+    </div>
     <div id="playerList"></div>
     <div id="lobbyStatus"></div>
     <button class="menuBtn danger" onclick="leaveLobby()">LEAVE LOBBY</button>
@@ -240,6 +260,26 @@ const W=window.innerWidth,H=window.innerHeight;
 canvas.width=W;canvas.height=H;bgCvs.width=W;bgCvs.height=H;
 document.getElementById('gc').style.cssText=`width:${W}px;height:${H}px`;
 const MAP=4000,MINI=168,MAX_P=20;
+
+// Offscreen canvas for static map elements (grid, border) - rendered once
+const staticCanvas=document.createElement('canvas');
+staticCanvas.width=MAP;staticCanvas.height=MAP;
+const sCtx=staticCanvas.getContext('2d');
+let staticMapReady=false;
+
+function buildStaticMap(){
+  // Ground
+  sCtx.fillStyle='#07100a';sCtx.fillRect(0,0,MAP,MAP);
+  sCtx.globalAlpha=0.055;
+  for(let gx=0;gx<MAP;gx+=200)for(let gy=0;gy<MAP;gy+=200){const v=((gx*7+gy*13)%17)/17;sCtx.fillStyle=v>0.5?'#1a3020':'#0d1a10';sCtx.fillRect(gx,gy,200,200);}
+  sCtx.globalAlpha=1;
+  sCtx.strokeStyle='rgba(57,255,20,0.035)';sCtx.lineWidth=1;
+  for(let x=0;x<=MAP;x+=200){sCtx.beginPath();sCtx.moveTo(x,0);sCtx.lineTo(x,MAP);sCtx.stroke();}
+  for(let y=0;y<=MAP;y+=200){sCtx.beginPath();sCtx.moveTo(0,y);sCtx.lineTo(MAP,y);sCtx.stroke();}
+  sCtx.shadowColor='rgba(57,255,20,0.4)';sCtx.shadowBlur=10;
+  sCtx.strokeStyle='rgba(57,255,20,0.55)';sCtx.lineWidth=3;sCtx.strokeRect(0,0,MAP,MAP);sCtx.shadowBlur=0;
+  staticMapReady=true;
+}
 
 // Class colors
 const CC={
@@ -303,11 +343,11 @@ function applyRpChange(ch){const b=pd.rp;pd.rp=Math.max(0,pd.rp+ch);if(pd.rp>(pd
 
 // ── CLASSES ─────────────────────────────────────────────
 const CLASSES={
-  SCOUT:  {icon:'◎',hp:70, speed:3.8,damage:18,fireRate:300,bulletSpeed:13,bulletLife:230,radius:15,barrels:1,ability:'DASH',  abilityDesc:'Burst forward',       abilityCooldown:4000, stats:{HP:'70',SPD:'★★★★★',DMG:'★★☆☆☆',FIRE:'★★★★☆'}},
-  WARRIOR:{icon:'◉',hp:100,speed:2.5,damage:25,fireRate:400,bulletSpeed:10,bulletLife:200,radius:18,barrels:1,ability:'SHIELD',abilityDesc:'2s invincibility',    abilityCooldown:8000, stats:{HP:'100',SPD:'★★★☆☆',DMG:'★★★☆☆',FIRE:'★★★☆☆'}},
-  HEAVY:  {icon:'⬟',hp:165,speed:1.6,damage:48,fireRate:720,bulletSpeed:8, bulletLife:155,radius:23,barrels:1,ability:'SLAM',  abilityDesc:'Shockwave nearby',    abilityCooldown:10000,stats:{HP:'165',SPD:'★★☆☆☆',DMG:'★★★★★',FIRE:'★★☆☆☆'}},
-  SNIPER: {icon:'⊕',hp:80, speed:2.2,damage:70,fireRate:950,bulletSpeed:19,bulletLife:380,radius:16,barrels:1,ability:'CLOAK', abilityDesc:'Invisible on radar',  abilityCooldown:9000, stats:{HP:'80',SPD:'★★☆☆☆',DMG:'★★★★★',FIRE:'★★☆☆☆'}},
-  TWIN:   {icon:'⊞',hp:90, speed:2.3,damage:16,fireRate:330,bulletSpeed:10,bulletLife:190,radius:17,barrels:2,ability:'BURST', abilityDesc:'6-shot rapid burst',  abilityCooldown:6000, stats:{HP:'90',SPD:'★★★☆☆',DMG:'★★★☆☆',FIRE:'★★★★☆'}},
+  SCOUT:  {icon:'◎',hp:70, speed:5.2,damage:18,fireRate:300,bulletSpeed:15,bulletLife:230,radius:15,barrels:1,ability:'DASH',  abilityDesc:'Burst forward',       abilityCooldown:4000, stats:{HP:'70',SPD:'★★★★★',DMG:'★★☆☆☆',FIRE:'★★★★☆'}},
+  WARRIOR:{icon:'◉',hp:100,speed:3.6,damage:25,fireRate:400,bulletSpeed:12,bulletLife:200,radius:18,barrels:1,ability:'SHIELD',abilityDesc:'2s invincibility',    abilityCooldown:8000, stats:{HP:'100',SPD:'★★★☆☆',DMG:'★★★☆☆',FIRE:'★★★☆☆'}},
+  HEAVY:  {icon:'⬟',hp:165,speed:2.4,damage:48,fireRate:720,bulletSpeed:10,bulletLife:155,radius:23,barrels:1,ability:'SLAM',  abilityDesc:'Shockwave nearby',    abilityCooldown:10000,stats:{HP:'165',SPD:'★★☆☆☆',DMG:'★★★★★',FIRE:'★★☆☆☆'}},
+  SNIPER: {icon:'⊕',hp:80, speed:3.2,damage:70,fireRate:950,bulletSpeed:22,bulletLife:380,radius:16,barrels:1,ability:'CLOAK', abilityDesc:'Invisible on radar',  abilityCooldown:9000, stats:{HP:'80',SPD:'★★☆☆☆',DMG:'★★★★★',FIRE:'★★☆☆☆'}},
+  TWIN:   {icon:'⊞',hp:90, speed:3.4,damage:16,fireRate:330,bulletSpeed:12,bulletLife:190,radius:17,barrels:2,ability:'BURST', abilityDesc:'6-shot rapid burst',  abilityCooldown:6000, stats:{HP:'90',SPD:'★★★☆☆',DMG:'★★★☆☆',FIRE:'★★★★☆'}},
 };
 const UPGRADES=[
   {id:'hp',   name:'ARMOR+',   desc:'+30 max HP  +20 current',apply:t=>{t.maxHp+=30;t.hp=Math.min(t.maxHp,t.hp+20);}},
@@ -388,7 +428,14 @@ function handlePlayerLeave(data){delete lobbyPlayers[data.id];updateLobbyUI();}
 function handleGameStart(data){if(isLobbyHost)return;clearInterval(lobbyTimer);document.getElementById('lobbyScreen').style.display='none';startOnlineGame(data);}
 function startLobbyCountdown(){
   lobbyCountdown=60;updateLobbyUI();
-  lobbyTimer=setInterval(()=>{lobbyCountdown--;updateLobbyUI();if(lobbyCountdown<=0){clearInterval(lobbyTimer);if(isLobbyHost)launchOnlineLobby();}},1000);
+  lobbyTimer=setInterval(()=>{
+    lobbyCountdown--;
+    updateLobbyUI();
+    if(lobbyCountdown<=0){
+      clearInterval(lobbyTimer);
+      if(isLobbyHost)launchOnlineLobby();
+    }
+  },1000);
 }
 function launchOnlineLobby(){
   const real=Object.values(lobbyPlayers).filter(p=>!p.isBot),all=[...real];
@@ -414,14 +461,49 @@ function showLobbyScreen(){
 }
 function updateLobbyUI(){
   const list=document.getElementById('playerList');
-  const rc=Object.values(lobbyPlayers).filter(p=>!p.isBot).length,bc=MAX_P-rc;
+  const allPlayers=Object.values(lobbyPlayers);
+  const realPlayers=allPlayers.filter(p=>!p.isBot);
+  const rc=realPlayers.length;
+  const bc=MAX_P-rc;
+
+  // Build player list HTML - show ALL real players + a few bot slots
   let html='';
-  for(const p of Object.values(lobbyPlayers)){if(!p.isBot)html+=`<div class="playerEntry"><span class="pname">◈ ${p.name}</span><span class="pclass">${p.className}</span></div>`;}
-  for(let i=0;i<Math.min(bc,3);i++)html+=`<div class="playerEntry isBot"><span class="pname">WAITING...</span><span class="pclass">BOT SLOT</span></div>`;
-  if(bc>3)html+=`<div class="playerEntry isBot"><span class="pname">+${bc-3} MORE</span></div>`;
+  for(const p of realPlayers){
+    const cls=CLASSES[p.className]||CLASSES.WARRIOR;
+    const isSelf=p.id===MY_ID;
+    const isHost=isLobbyHost?isSelf:(p.id===Object.values(lobbyPlayers)[0]?.id);
+    html+=`<div class="playerEntry${isSelf?' isSelf':''}">
+      <span class="pname">
+        <span class="picon">${cls.icon}</span>
+        <span>${p.name}${isSelf?' <span style="color:rgba(57,255,20,0.38);font-size:8px">[YOU]</span>':''}</span>
+      </span>
+      <span class="pright">
+        <span class="pclass">${p.className}</span>
+        ${isHost?'<span class="phost">HOST</span>':''}
+      </span>
+    </div>`;
+  }
+  // Show bot slots
+  const showBotSlots=Math.min(bc,Math.max(0,5-rc));
+  for(let i=0;i<showBotSlots;i++)html+=`<div class="playerEntry isBot"><span class="pname"><span class="picon">⬟</span> WAITING...</span><span class="pright"><span class="pclass">BOT SLOT</span></span></div>`;
+  if(bc>showBotSlots)html+=`<div class="playerEntry isBot" style="justify-content:center;color:rgba(57,255,20,0.22)">+${bc-showBotSlots} MORE BOT SLOTS</div>`;
   list.innerHTML=html;
-  const cd=document.getElementById('countdown');if(cd)cd.textContent=`${lobbyCountdown}s — ${rc}/${MAX_P} PLAYERS`;
-  const st=document.getElementById('lobbyStatus');if(st)st.textContent=isLobbyHost?'YOU ARE HOST · LAUNCHES AT ZERO':'WAITING FOR HOST...';
+
+  // Count label
+  const cl=document.getElementById('lobbyCountLabel');if(cl)cl.textContent=`${rc} / ${MAX_P} PLAYERS`;
+
+  // Countdown display
+  const cd=document.getElementById('countdown');
+  const fill=document.getElementById('countdownFill');
+  if(cd){
+    cd.textContent=lobbyCountdown;
+    const urgent=lobbyCountdown<=10;
+    cd.className=urgent?'urgent':'';
+    if(fill){fill.style.width=((lobbyCountdown/60)*100)+'%';fill.className=urgent?'urgent':'';}
+  }
+
+  const st=document.getElementById('lobbyStatus');
+  if(st)st.textContent=isLobbyHost?'◈ YOU ARE HOST — GAME LAUNCHES AT ZERO':'WAITING FOR HOST TO START...';
 }
 
 // ── ONLINE SYNC ─────────────────────────────────────────
@@ -569,7 +651,7 @@ function startGame(mode,cls){
   gameMode=mode;gameRunning=true;onlineMode=false;menuCrsVisible=false;
   entities=[];bullets=[];particles=[];pickups=[];killFeedEntries=[];sessionKills=0;
   zoneRadius=MAP*0.5;zoneTargetRadius=zoneRadius*0.55;zoneCenter={x:MAP/2,y:MAP/2};zoneShrinkStart=Date.now()+zoneShrinkDelay;
-  gameStartTime=Date.now();generateMap();
+  gameStartTime=Date.now();generateMap();buildStaticMap();
   const pos=spawnPos();player=createTank(pos.x,pos.y,true,0,cls,MY_ID);entities.push(player);
   const ck=Object.keys(CLASSES);for(let i=1;i<MAX_P;i++){const p=spawnPos();entities.push(createTank(p.x,p.y,false,i,ck[Math.floor(Math.random()*ck.length)]));}
   camera.x=player.x-W/2;camera.y=player.y-H/2;document.getElementById('upgradePanel').style.display='none';updateHUD();
@@ -579,7 +661,7 @@ function startOnlineGame(data){
   gameMode='online';gameRunning=true;onlineMode=true;menuCrsVisible=false;
   entities=[];bullets=[];particles=[];pickups=[];killFeedEntries=[];sessionKills=0;
   zoneRadius=MAP*0.5;zoneTargetRadius=zoneRadius*0.55;zoneCenter={x:MAP/2,y:MAP/2};zoneShrinkStart=Date.now()+zoneShrinkDelay;
-  gameStartTime=Date.now();generateMap(data.mapSeed);
+  gameStartTime=Date.now();generateMap(data.mapSeed);buildStaticMap();
   data.players.forEach((p,i)=>{const pos=spawnPos(),isMe=p.id===MY_ID;const tank=createTank(pos.x,pos.y,isMe,i,p.className,p.id);tank.name=isMe?'YOU':p.name;tank.isBot=p.isBot;tank.isRemote=!isMe&&!p.isBot;if(isMe)player=tank;entities.push(tank);});
   camera.x=player.x-W/2;camera.y=player.y-H/2;document.getElementById('upgradePanel').style.display='none';
   mqttSubscribe(mqttTopic(lobbyCode,'state'));mqttSubscribe(mqttTopic(lobbyCode,'event'));
@@ -622,7 +704,7 @@ function fireBullet(tank){
   for(const a of angles){
     const bx=tank.x+Math.cos(a)*(tank.radius+15),by=tank.y+Math.sin(a)*(tank.radius+15);
     bullets.push({x:bx,y:by,vx:Math.cos(a)*tank.bulletSpeed,vy:Math.sin(a)*tank.bulletSpeed,owner:tank,life:tank.bulletLife,r:tank.className==='HEAVY'?7:tank.className==='SNIPER'?3:4,damage:tank.damage,pierce:tank.pierce,split:tank.split,hits:0,color:col.b,glow:col.g});
-    for(let i=0;i<7;i++)particles.push({x:bx,y:by,vx:(Math.random()-.5)*5+Math.cos(a)*4,vy:(Math.random()-.5)*5+Math.sin(a)*4,life:10,maxLife:10,r:4+Math.random()*4,color:col.b,glow:col.g});
+    for(let i=0;i<(tank.isPlayer?7:3);i++)particles.push({x:bx,y:by,vx:(Math.random()-.5)*5+Math.cos(a)*4,vy:(Math.random()-.5)*5+Math.sin(a)*4,life:10,maxLife:10,r:4+Math.random()*4,color:col.b,glow:col.g});
   }
   if(tank.isPlayer&&tank.className==='HEAVY')shake={x:(Math.random()-.5)*8,y:(Math.random()-.5)*8,t:6};
   return true;
@@ -673,7 +755,8 @@ function updatePickups(){
 function killTank(tank,killer){
   if(!tank.alive)return;tank.alive=false;
   const col=CC[tank.className]||CC.WARRIOR;
-  spawnExp(tank.x,tank.y,28,col.b,col.g);spawnExp(tank.x,tank.y,14,'#ffb800','rgba(255,184,0,');
+  const np=tank.isPlayer?28:14;
+  spawnExp(tank.x,tank.y,np,col.b,col.g);spawnExp(tank.x,tank.y,Math.round(np/2),'#ffb800','rgba(255,184,0,');
   spawnPickup(tank.x,tank.y);
   const kn=killer?(killer.isPlayer?'YOU':killer.name):'ZONE';
   addKF(`${kn} ▶ ${tank.name}`,killer&&killer.isPlayer);
@@ -692,7 +775,11 @@ function killTank(tank,killer){
     gameRunning=false;requestAnimationFrame(menuLoop);
   }
 }
-function spawnExp(x,y,n=20,color='#ffffff',glow='rgba(255,255,255,'){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,sp=1+Math.random()*6;particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:25+Math.random()*30,maxLife:55,r:3+Math.random()*7,color,glow});}}
+function spawnExp(x,y,n=20,color='#ffffff',glow='rgba(255,255,255,'){
+  // Cap total particles for performance
+  const cap=300;if(particles.length>cap)particles.splice(0,particles.length-cap+n);
+  for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,sp=1+Math.random()*6;particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:25+Math.random()*30,maxLife:55,r:3+Math.random()*7,color,glow});}
+}
 function addKF(msg,isKill=false){const d=document.createElement('div');d.className='ke'+(isKill?' kp':'');d.textContent=msg;document.getElementById('kf').prepend(d);killFeedEntries.push(d);setTimeout(()=>{d.style.opacity='0';setTimeout(()=>d.remove(),900);},3500);if(killFeedEntries.length>6)killFeedEntries.shift().remove();}
 
 // ── HUD ──────────────────────────────────────────────────
@@ -715,8 +802,8 @@ function updateHUD(){
 }
 
 // ── GAME LOOP ─────────────────────────────────────────────
-let lastFrame=0;
-function gameLoop(ts){if(!gameRunning)return;const dt=Math.min(ts-lastFrame,50);lastFrame=ts;update(dt);render();requestAnimationFrame(gameLoop);}
+let lastFrame=0,frameCount=0;
+function gameLoop(ts){if(!gameRunning)return;const dt=Math.min(ts-lastFrame,50);lastFrame=ts;frameCount++;update(dt);render();requestAnimationFrame(gameLoop);}
 function update(dt){
   updatePlayer();const now=Date.now();
   if(now>zoneShrinkStart){zoneRadius+=(zoneTargetRadius-zoneRadius)*0.0015;if(Math.abs(zoneRadius-zoneTargetRadius)<5){zoneShrinkStart=now+zoneShrinkDelay;zoneTargetRadius=Math.max(80,zoneRadius*0.62);}}
@@ -749,7 +836,7 @@ function update(dt){
   updatePickups();
   if(shake.t>0){shake.t--;if(shake.t===0){shake.x=0;shake.y=0;}else{shake.x*=0.75;shake.y*=0.75;}}
   camera.x+=(player.x-W/2-camera.x)*0.1;camera.y+=(player.y-H/2-camera.y)*0.1;
-  updateHUD();
+  if(frameCount%3===0)updateHUD();
 }
 
 // ── RENDER ────────────────────────────────────────────────
@@ -757,20 +844,12 @@ function render(){
   ctx.clearRect(0,0,W,H);ctx.save();
   ctx.translate(Math.round(shake.x),Math.round(shake.y));ctx.translate(-camera.x,-camera.y);
 
-  // Ground with tonal variation
-  ctx.fillStyle='#07100a';ctx.fillRect(0,0,MAP,MAP);
-  ctx.globalAlpha=0.055;
-  for(let gx=0;gx<MAP;gx+=200)for(let gy=0;gy<MAP;gy+=200){const v=((gx*7+gy*13)%17)/17;ctx.fillStyle=v>0.5?'#1a3020':'#0d1a10';ctx.fillRect(gx,gy,200,200);}
-  ctx.globalAlpha=1;
-
-  // Grid
-  ctx.strokeStyle='rgba(57,255,20,0.035)';ctx.lineWidth=1;
-  for(let x=0;x<=MAP;x+=200){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,MAP);ctx.stroke();}
-  for(let y=0;y<=MAP;y+=200){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(MAP,y);ctx.stroke();}
-
-  // Map border
-  ctx.shadowColor='rgba(57,255,20,0.4)';ctx.shadowBlur=10;
-  ctx.strokeStyle='rgba(57,255,20,0.55)';ctx.lineWidth=3;ctx.strokeRect(0,0,MAP,MAP);ctx.shadowBlur=0;
+  // Draw static map elements from offscreen canvas
+  if(staticMapReady){
+    ctx.drawImage(staticCanvas,0,0);
+  } else {
+    ctx.fillStyle='#07100a';ctx.fillRect(0,0,MAP,MAP);
+  }
 
   // Zone darkness
   ctx.save();ctx.fillStyle='rgba(0,0,0,0.52)';ctx.beginPath();ctx.rect(0,0,MAP,MAP);ctx.arc(zoneCenter.x,zoneCenter.y,zoneRadius,0,Math.PI*2,true);ctx.fill();ctx.restore();
