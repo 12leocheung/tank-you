@@ -392,6 +392,7 @@ function onMQTTMessage(message){
   if(topic===mqttTopic(lobbyCode,'join'))handlePlayerJoin(data);
   else if(topic===mqttTopic(lobbyCode,'leave'))handlePlayerLeave(data);
   else if(topic===mqttTopic(lobbyCode,'start'))handleGameStart(data);
+  else if(topic===mqttTopic(lobbyCode,'countdown'))handleCountdown(data);
   else if(topic===mqttTopic(lobbyCode,'state'))handlePlayerState(data);
   else if(topic===mqttTopic(lobbyCode,'event'))handleGameEvent(data);
 }
@@ -417,21 +418,32 @@ function doJoinLobby(){
 function joinLobby(code,cls){
   lobbyCode=code;isLobbyHost=false;lobbyPlayers={};
   lobbyPlayers[MY_ID]={id:MY_ID,name:'P_'+MY_ID.slice(0,4).toUpperCase(),className:cls,isBot:false};
-  showLobbyScreen();mqttSubscribe(mqttTopic(lobbyCode,'join'));mqttSubscribe(mqttTopic(lobbyCode,'leave'));mqttSubscribe(mqttTopic(lobbyCode,'start'));
+  showLobbyScreen();mqttSubscribe(mqttTopic(lobbyCode,'join'));mqttSubscribe(mqttTopic(lobbyCode,'leave'));mqttSubscribe(mqttTopic(lobbyCode,'start'));mqttSubscribe(mqttTopic(lobbyCode,'countdown'));
   mqttPublish(mqttTopic(lobbyCode,'join'),{id:MY_ID,name:lobbyPlayers[MY_ID].name,className:cls,isBot:false});
 }
 function handlePlayerJoin(data){
   if(data.id===MY_ID)return;lobbyPlayers[data.id]=data;
-  if(isLobbyHost)mqttPublish(mqttTopic(lobbyCode,'join'),{id:MY_ID,name:lobbyPlayers[MY_ID].name,className:lobbyPlayers[MY_ID].className,isBot:false});
+  // Host re-announces itself AND sends current countdown so new joiner syncs
+  if(isLobbyHost){
+    mqttPublish(mqttTopic(lobbyCode,'join'),{id:MY_ID,name:lobbyPlayers[MY_ID].name,className:lobbyPlayers[MY_ID].className,isBot:false});
+    mqttPublish(mqttTopic(lobbyCode,'countdown'),{t:lobbyCountdown});
+  }
   updateLobbyUI();
 }
 function handlePlayerLeave(data){delete lobbyPlayers[data.id];updateLobbyUI();}
 function handleGameStart(data){if(isLobbyHost)return;clearInterval(lobbyTimer);document.getElementById('lobbyScreen').style.display='none';startOnlineGame(data);}
+function handleCountdown(data){
+  if(isLobbyHost)return; // Host drives its own timer
+  lobbyCountdown=data.t;
+  updateLobbyUI();
+}
 function startLobbyCountdown(){
   lobbyCountdown=60;updateLobbyUI();
   lobbyTimer=setInterval(()=>{
     lobbyCountdown--;
     updateLobbyUI();
+    // Host broadcasts the current countdown so all clients stay in sync
+    if(isLobbyHost)mqttPublish(mqttTopic(lobbyCode,'countdown'),{t:lobbyCountdown});
     if(lobbyCountdown<=0){
       clearInterval(lobbyTimer);
       if(isLobbyHost)launchOnlineLobby();
@@ -744,7 +756,13 @@ function updateAI(tank,dt){
   const dz=dist(tank.x,tank.y,zoneCenter.x,zoneCenter.y);
   if(dz>zoneRadius-80){tank.aiMoveAngle=Math.atan2(zoneCenter.y-tank.y,zoneCenter.x-tank.x);tank.aiState='wander';}
   else if(nearest&&nd<680){tank.aiState='chase';tank.aiTarget=nearest;}
-  else{tank.aiState='wander';tank.aiMoveTimer-=dt;if(tank.aiMoveTimer<=0){tank.aiMoveTimer=1800+Math.random()*3000;tank.aiMoveAngle=Math.random()*Math.PI*2;}}
+  else{
+    // Check for nearby pickups to move toward
+    let nearestPk=null,pkDist=320;
+    for(const pk of pickups){const d=dist(tank.x,tank.y,pk.x,pk.y);if(d<pkDist){pkDist=d;nearestPk=pk;}}
+    if(nearestPk){tank.aiState='wander';tank.aiMoveAngle=Math.atan2(nearestPk.y-tank.y,nearestPk.x-tank.x);}
+    else{tank.aiState='wander';tank.aiMoveTimer-=dt;if(tank.aiMoveTimer<=0){tank.aiMoveTimer=1800+Math.random()*3000;tank.aiMoveAngle=Math.random()*Math.PI*2;}}
+  }
   if(tank.aiState==='chase'&&tank.aiTarget){const ang=Math.atan2(tank.aiTarget.y-tank.y,tank.aiTarget.x-tank.x);tank.aiMoveAngle=ang;tank.turretAngle=ang;if(nd<580)fireBullet(tank);if(Math.random()<0.003)useAbility(tank);}
   else tank.turretAngle=tank.aiMoveAngle;
   tank.angle=tank.aiMoveAngle;tank.vx=Math.cos(tank.aiMoveAngle)*tank.speed*0.7;tank.vy=Math.sin(tank.aiMoveAngle)*tank.speed*0.7;
@@ -766,15 +784,37 @@ function spawnUpgradePickup(x,y,upgradeId){
 function updatePickups(){
   for(let i=pickups.length-1;i>=0;i--){
     const pk=pickups[i];pk.pulse+=0.07;
+    let consumed=false;
+
+    // Check player first
     if(pk.type==='upgrade'){
       if(dist(pk.x,pk.y,player.x,player.y)<pk.r+player.radius){
         const upDef=UPGRADES.find(u=>u.id===pk.upgradeId);
         if(upDef){upDef.apply(player);player.upgrades.push(upDef.id);showXPFloat(`▲ ${upDef.name}`,player);}
-        pickups.splice(i,1);
+        consumed=true;
       }
     } else {
-      if(dist(pk.x,pk.y,player.x,player.y)<pk.r+player.radius){player.hp=Math.min(player.maxHp,player.hp+pk.value);showXPFloat('+'+pk.value+' HP',player);pickups.splice(i,1);}
+      if(dist(pk.x,pk.y,player.x,player.y)<pk.r+player.radius){
+        player.hp=Math.min(player.maxHp,player.hp+pk.value);showXPFloat('+'+pk.value+' HP',player);consumed=true;
+      }
     }
+
+    if(consumed){pickups.splice(i,1);continue;}
+
+    // Check bots (only check nearby bots for performance)
+    for(const tank of entities){
+      if(!tank.alive||tank.isPlayer||tank.isRemote)continue;
+      if(dist(pk.x,pk.y,tank.x,tank.y)<pk.r+tank.radius){
+        if(pk.type==='upgrade'){
+          const upDef=UPGRADES.find(u=>u.id===pk.upgradeId);
+          if(upDef){upDef.apply(tank);tank.upgrades.push(upDef.id);tank.level++;}
+        } else {
+          tank.hp=Math.min(tank.maxHp,tank.hp+pk.value);
+        }
+        consumed=true;break;
+      }
+    }
+    if(consumed)pickups.splice(i,1);
   }
 }
 
@@ -785,13 +825,17 @@ function killTank(tank,killer){
   const np=tank.isPlayer?28:14;
   spawnExp(tank.x,tank.y,np,col.b,col.g);spawnExp(tank.x,tank.y,Math.round(np/2),'#ffb800','rgba(255,184,0,');
   spawnPickup(tank.x,tank.y);
-  // Drop upgrades as collectible pickups (skip duplicates like pierce/split/multi which are binary)
+  // Drop a random subset of upgrades (at most 2, each with 40% chance)
   if(tank.upgrades&&tank.upgrades.length>0){
-    const seen={};
-    for(const uid of tank.upgrades){
-      if(uid==='pierce'||uid==='split'||uid==='multi'){if(seen[uid])continue;seen[uid]=true;}
-      spawnUpgradePickup(tank.x,tank.y,uid);
-    }
+    const seen={};const dropped=[];
+    // Deduplicate binary upgrades, shuffle the rest
+    const unique=tank.upgrades.filter(uid=>{
+      if(uid==='pierce'||uid==='split'||uid==='multi'){if(seen[uid])return false;seen[uid]=true;}
+      return true;
+    });
+    // Shuffle and take at most 2 with 40% chance each
+    for(let i=unique.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[unique[i],unique[j]]=[unique[j],unique[i]];}
+    for(const uid of unique){if(dropped.length>=2)break;if(Math.random()<0.4){spawnUpgradePickup(tank.x,tank.y,uid);dropped.push(uid);}}
   }
   const kn=killer?(killer.isPlayer?'YOU':killer.name):'ZONE';
   addKF(`${kn} ▶ ${tank.name}`,killer&&killer.isPlayer);
