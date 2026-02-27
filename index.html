@@ -180,6 +180,31 @@ canvas{display:block}
 .sbNum{background:rgba(57,255,20,0.04);border:1px solid rgba(57,255,20,0.2);color:var(--g);font-family:'Share Tech Mono',monospace;font-size:11px;padding:5px 10px;width:70px;text-align:center}
 .sbNum:focus{outline:none;border-color:var(--g)}
 .godBadge{display:inline-block;background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.4);color:#ffd700;font-size:8px;letter-spacing:3px;padding:2px 8px;margin-left:8px;vertical-align:middle;text-shadow:0 0 8px #ffd700}
+.upgradeChip{display:inline-flex;align-items:center;background:rgba(57,255,20,0.08);border:1px solid rgba(57,255,20,0.25);padding:3px 8px;margin:2px;font-size:9px;letter-spacing:1px;gap:4px;cursor:default}
+.chipCount{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;background:rgba(57,255,20,0.2);border:1px solid rgba(57,255,20,0.4);border-radius:2px;font-size:9px;font-family:'Orbitron',sans-serif;padding:0 3px}
+.chipMinus,.chipPlus{cursor:pointer;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(57,255,20,0.25);font-size:12px;line-height:1;color:rgba(57,255,20,0.6);transition:all .1s}
+.chipMinus:hover{background:rgba(255,58,58,0.15);color:var(--r);border-color:var(--r)}
+.chipPlus:hover{background:rgba(57,255,20,0.15);color:var(--g);border-color:var(--g)}
+/* Bot editor cards */
+.botEditorCard{border:1px solid rgba(57,255,20,0.18);margin-bottom:6px;background:rgba(57,255,20,0.015);overflow:hidden}
+.botCardHeader{display:flex;align-items:center;padding:8px 12px;cursor:pointer;gap:10px;transition:background .15s}
+.botCardHeader:hover{background:rgba(57,255,20,0.04)}
+.botCardIcon{font-size:18px;min-width:22px}
+.botCardName{flex:1;font-size:10px;letter-spacing:2px}
+.botCardMeta{font-size:8px;letter-spacing:2px;color:rgba(57,255,20,0.35)}
+.botCardExpand{font-size:10px;color:rgba(57,255,20,0.35);transition:transform .2s;min-width:16px}
+.botCardExpand.open{transform:rotate(180deg)}
+.botEditorBody{display:none;padding:10px 14px;border-top:1px solid rgba(57,255,20,0.1)}
+.botEditorBody.open{display:block}
+.botEdRow{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.botEdLabel{font-size:8px;letter-spacing:3px;color:rgba(57,255,20,0.4);min-width:100px}
+.botEdSelect{background:rgba(57,255,20,0.04);border:1px solid rgba(57,255,20,0.18);color:var(--g);font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;padding:4px 8px;cursor:pointer}
+.botEdToggle{display:flex;gap:0}
+.botEdToggleBtn{padding:4px 12px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;border:1px solid rgba(57,255,20,0.15);background:transparent;color:rgba(57,255,20,0.3);cursor:pointer;transition:all .1s}
+.botEdToggleBtn.on{background:rgba(57,255,20,0.1);color:var(--g);border-color:rgba(57,255,20,0.5)}
+.botEdUpgList{margin-top:4px;min-height:20px}
+.botDelBtn{margin-left:auto;padding:4px 10px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;border:1px solid rgba(255,58,58,0.25);color:rgba(255,58,58,0.45);background:transparent;cursor:pointer;transition:all .1s}
+.botDelBtn:hover{border-color:var(--r);color:var(--r);background:rgba(255,58,58,0.08)}
 </style>
 </head>
 <body>
@@ -363,11 +388,12 @@ canvas{display:block}
         <span id="godBadgeEl" style="display:none" class="godBadge">INVINCIBLE</span>
       </div>
       <div class="sbRow">
-        <span class="sbLabel">STARTING UPGRADES</span>
+        <span class="sbLabel">ADD UPGRADE</span>
         <select id="playerUpgradeAdd" class="sbSelect" onchange="addPlayerUpgrade()">
-          <option value="">ADD UPGRADE...</option>
+          <option value="">CHOOSE UPGRADE...</option>
         </select>
-        <button class="sbPresetBtn" onclick="addAllUpgrades()" style="padding:5px 12px;font-size:9px">ALL UPGRADES</button>
+        <button class="sbPresetBtn" onclick="addAllUpgrades()" style="padding:5px 12px;font-size:9px">ALL ×1</button>
+        <button class="sbPresetBtn" onclick="clearPlayerUpgrades()" style="padding:5px 12px;font-size:9px">CLEAR</button>
       </div>
       <div id="playerUpgradeList" style="margin-top:6px;min-height:24px"></div>
     </div>
@@ -375,30 +401,14 @@ canvas{display:block}
     <!-- BOTS -->
     <div class="sbSection">
       <div class="sbSectionHead">⬟ BOTS (<span id="botCount">0</span>/20)</div>
-      <div class="sbRow">
-        <span class="sbLabel">BOT UPGRADES</span>
-        <div class="sbToggle">
-          <button class="sbToggleBtn on" id="botUpg-none" onclick="setSbBotUpgrades('none')">NONE</button>
-          <button class="sbToggleBtn" id="botUpg-random" onclick="setSbBotUpgrades('random')">RANDOM</button>
-          <button class="sbToggleBtn" id="botUpg-max" onclick="setSbBotUpgrades('max')">MAXED</button>
-        </div>
-      </div>
-      <div class="sbRow">
-        <span class="sbLabel">BOT DIFFICULTY</span>
-        <div class="sbToggle">
-          <button class="sbToggleBtn" id="botDiff-easy" onclick="setSbDiff('easy')">EASY</button>
-          <button class="sbToggleBtn on" id="botDiff-normal" onclick="setSbDiff('normal')">NORMAL</button>
-          <button class="sbToggleBtn" id="botDiff-hard" onclick="setSbDiff('hard')">HARD</button>
-        </div>
-      </div>
-      <div class="sbRow">
-        <span class="sbLabel">ADD BOTS</span>
-        <button class="sbPresetBtn" onclick="addRandomBot()" style="padding:5px 12px;font-size:9px">+ RANDOM</button>
-        <button class="sbPresetBtn" onclick="openBotSelector()" style="padding:5px 12px;font-size:9px">+ PICK CLASS</button>
+      <div class="sbRow" style="margin-bottom:10px">
+        <button class="sbPresetBtn" onclick="addNewBot()" style="padding:6px 16px;font-size:10px;border-color:rgba(57,255,20,0.35);color:var(--g)">+ ADD BOT</button>
+        <button class="sbPresetBtn" onclick="addRandomBot()" style="padding:6px 14px;font-size:9px">+ RANDOM</button>
         <input type="number" id="bulkBotCount" class="sbNum" min="1" max="20" value="5" placeholder="N">
-        <button class="sbPresetBtn" onclick="addBulkBots()" style="padding:5px 12px;font-size:9px">+ BULK ADD</button>
+        <button class="sbPresetBtn" onclick="addBulkBots()" style="padding:6px 12px;font-size:9px">+ BULK</button>
+        <button class="sbPresetBtn" onclick="clearAllBots()" style="padding:6px 12px;font-size:9px;border-color:rgba(255,58,58,0.25);color:rgba(255,58,58,0.5)">CLEAR ALL</button>
       </div>
-      <div id="botsList" style="min-height:24px;max-height:120px;overflow-y:auto;margin-top:6px"></div>
+      <div id="botsList" style="min-height:24px;max-height:420px;overflow-y:auto"></div>
     </div>
 
     <!-- ZONE SETTINGS -->
@@ -417,13 +427,6 @@ canvas{display:block}
       <button class="menuBtn primary" onclick="startSandbox()">▶ LAUNCH SANDBOX</button>
       <button class="menuBtn" onclick="showMenu()">← BACK</button>
     </div>
-  </div>
-
-  <div id="botSelectorScreen" style="display:none">
-    <div class="ctl"></div><div class="ctr"></div><div class="cbl"></div><div class="cbr"></div>
-    <h2>SELECT BOT CLASS</h2>
-    <div id="botClassGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:20px;width:80%;max-width:600px"></div>
-    <button class="menuBtn" onclick="closeBotSelector()">← BACK</button>
   </div>
 </div>
 
@@ -925,24 +928,20 @@ function showLeaderboard(){
   document.getElementById('lbHsPlace').innerHTML=hsP.length?hsP.map((h,i)=>
     `<div class="hsRow ${topClass[i]||''}"><span class="hsRank">${['🥇','🥈','🥉','4','5'][i]}</span><span class="hsName">${h.cls||'WARRIOR'}</span><span class="hsMeta">${new Date(h.time||0).toLocaleDateString()}</span><span class="hsVal">#${h.v} PLACE</span></div>`).join(''):'<div class="hsEmpty">PLAY A MATCH TO SET A RECORD</div>';
 }
-let sbGodMode=false,sbBotUpgrades='none',sbBotDiff='normal',sbZoneOn=true;
+let sbGodMode=false,sbZoneOn=true;
+// sandboxBots: array of {cls, upgrades[], godMode, diff}
+function makeBotObj(cls='WARRIOR'){return{cls,upgrades:[],godMode:false,diff:'normal'};}
 
 function showSandbox(){
-  ['menu','classScreen','onlineScreen','lobbyScreen','leaderboardScreen','botSelectorScreen'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';});
+  ['menu','classScreen','onlineScreen','lobbyScreen','leaderboardScreen'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';});
   document.getElementById('sandboxScreen').style.display='flex';
-  selectedClass='WARRIOR';
-  sandboxBots=[];
-  sandboxPlayerUpgrades=[];
-  sbGodMode=false;sbBotUpgrades='none';sbBotDiff='normal';sbZoneOn=true;
+  selectedClass='WARRIOR';sandboxBots=[];sandboxPlayerUpgrades=[];
+  sbGodMode=false;sbZoneOn=true;_expandedBots=new Set();
   document.getElementById('sandboxPlayerClass').value='WARRIOR';
-  updatePlayerUpgradeDisplay();
-  updateBotsList();
-  document.getElementById('botCount').textContent='0';
-  // Populate upgrade select with ALL upgrades
+  updatePlayerUpgradeDisplay();updateBotsList();
   const sel=document.getElementById('playerUpgradeAdd');
-  sel.innerHTML='<option value="">ADD UPGRADE...</option>'+UPGRADES.map(u=>`<option value="${u.id}">${u.name} — ${u.desc}</option>`).join('');
-  // Sync toggle states
-  setSbGod(false);setSbBotUpgrades('none');setSbDiff('normal');setSbZone(true);
+  sel.innerHTML='<option value="">CHOOSE UPGRADE...</option>'+UPGRADES.map(u=>`<option value="${u.id}">${u.name} — ${u.desc}</option>`).join('');
+  setSbGod(false);setSbZone(true);
 }
 function setSbGod(on){
   sbGodMode=on;
@@ -950,136 +949,191 @@ function setSbGod(on){
   document.getElementById('godBtn-on').className='sbToggleBtn'+(on?' on':'');
   document.getElementById('godBadgeEl').style.display=on?'inline-block':'none';
 }
-function setSbBotUpgrades(v){
-  sbBotUpgrades=v;
-  ['none','random','max'].forEach(x=>{document.getElementById('botUpg-'+x).className='sbToggleBtn'+(v===x?' on':'');});
-}
-function setSbDiff(v){
-  sbBotDiff=v;
-  ['easy','normal','hard'].forEach(x=>{document.getElementById('botDiff-'+x).className='sbToggleBtn'+(v===x?' on':'');});
-}
 function setSbZone(on){
   sbZoneOn=on;
   document.getElementById('zone-on').className='sbToggleBtn'+(on?' on':'');
   document.getElementById('zone-off').className='sbToggleBtn'+(on?'':' on');
 }
 function loadPreset(name){
-  const cls=Object.keys(CLASSES);
-  if(name==='clear'){sandboxBots=[];sandboxPlayerUpgrades=[];sbGodMode=false;setSbGod(false);updateBotsList();updatePlayerUpgradeDisplay();return;}
-  if(name==='duel'){sandboxBots=[cls[Math.floor(Math.random()*cls.length)]];setSbBotUpgrades('none');setSbDiff('normal');setSbZone(true);updateBotsList();return;}
-  if(name==='horde'){sandboxBots=Array.from({length:10},()=>cls[Math.floor(Math.random()*cls.length)]);setSbBotUpgrades('random');setSbDiff('normal');setSbZone(true);updateBotsList();return;}
+  const clsKeys=Object.keys(CLASSES);
+  if(name==='clear'){sandboxBots=[];sandboxPlayerUpgrades=[];sbGodMode=false;setSbGod(false);_expandedBots=new Set();updateBotsList();updatePlayerUpgradeDisplay();return;}
+  if(name==='duel'){sandboxBots=[makeBotObj(clsKeys[Math.floor(Math.random()*clsKeys.length)])];_expandedBots=new Set();updateBotsList();return;}
+  if(name==='horde'){sandboxBots=Array.from({length:10},()=>makeBotObj(clsKeys[Math.floor(Math.random()*clsKeys.length)]));_expandedBots=new Set();updateBotsList();return;}
   if(name==='godmode'){sandboxPlayerUpgrades=UPGRADES.map(u=>u.id);setSbGod(true);updatePlayerUpgradeDisplay();return;}
   if(name==='maxUpgrades'){sandboxPlayerUpgrades=UPGRADES.map(u=>u.id);setSbGod(false);updatePlayerUpgradeDisplay();return;}
-  if(name==='sniperwars'){sandboxBots=Array.from({length:8},()=>'SNIPER');document.getElementById('sandboxPlayerClass').value='SNIPER';selectedClass='SNIPER';setSbBotUpgrades('random');updateBotsList();return;}
+  if(name==='sniperwars'){sandboxBots=Array.from({length:8},()=>{const b=makeBotObj('SNIPER');b.upgrades=['dmg','dmg','bspd','range'];return b;});document.getElementById('sandboxPlayerClass').value='SNIPER';selectedClass='SNIPER';_expandedBots=new Set();updateBotsList();return;}
 }
-function addAllUpgrades(){
-  sandboxPlayerUpgrades=UPGRADES.map(u=>u.id);
-  updatePlayerUpgradeDisplay();
-}
+function addAllUpgrades(){sandboxPlayerUpgrades=[...sandboxPlayerUpgrades,...UPGRADES.map(u=>u.id)];updatePlayerUpgradeDisplay();}
+function clearPlayerUpgrades(){sandboxPlayerUpgrades=[];updatePlayerUpgradeDisplay();}
 function addPlayerUpgrade(){
   const select=document.getElementById('playerUpgradeAdd');
-  const upgradeId=select.value;
-  if(!upgradeId)return;
-  if(sandboxPlayerUpgrades.includes(upgradeId)){select.value='';return;}
-  sandboxPlayerUpgrades.push(upgradeId);
-  updatePlayerUpgradeDisplay();
-  select.value='';
+  const upgradeId=select.value;if(!upgradeId)return;
+  sandboxPlayerUpgrades.push(upgradeId); // allow duplicates — no guard
+  updatePlayerUpgradeDisplay();select.value='';
 }
 function updatePlayerUpgradeDisplay(){
-  const list=document.getElementById('playerUpgradeList');
-  list.innerHTML=sandboxPlayerUpgrades.map(id=>{const u=UPGRADES.find(u=>u.id===id);return `<span class="upgradeChip">${u.name}<span class="chipX" onclick="removeSandboxUpgrade('${id}')">✕</span></span>`;}).join('');
+  const counts={};
+  sandboxPlayerUpgrades.forEach(id=>{counts[id]=(counts[id]||0)+1;});
+  document.getElementById('playerUpgradeList').innerHTML=Object.entries(counts).map(([id,cnt])=>{
+    const u=UPGRADES.find(u=>u.id===id);if(!u)return'';
+    return`<span class="upgradeChip" title="${u.desc}"><span class="chipMinus" onclick="adjustPlayerUpgrade('${id}',-1)">−</span><span class="chipCount">${cnt}</span><span>${u.name}</span><span class="chipPlus" onclick="adjustPlayerUpgrade('${id}',1)">+</span></span>`;
+  }).join('');
 }
-function removeSandboxUpgrade(id){
-  sandboxPlayerUpgrades.splice(sandboxPlayerUpgrades.indexOf(id),1);
+function adjustPlayerUpgrade(id,delta){
+  if(delta>0){sandboxPlayerUpgrades.push(id);}
+  else{const i=sandboxPlayerUpgrades.lastIndexOf(id);if(i>=0)sandboxPlayerUpgrades.splice(i,1);}
   updatePlayerUpgradeDisplay();
+}
+function removeSandboxUpgrade(id){sandboxPlayerUpgrades=sandboxPlayerUpgrades.filter(x=>x!==id);updatePlayerUpgradeDisplay();}
+
+// ── PER-BOT EDITOR ──────────────────────────────────────
+let _expandedBots=new Set();
+function addNewBot(){
+  if(sandboxBots.length>=20)return;
+  const idx=sandboxBots.length;
+  sandboxBots.push(makeBotObj('WARRIOR'));
+  _expandedBots.add(idx);
+  updateBotsList();
 }
 function addRandomBot(){
   if(sandboxBots.length>=20)return;
-  const classes=Object.keys(CLASSES);
-  const botClass=classes[Math.floor(Math.random()*classes.length)];
-  sandboxBots.push(botClass);
-  updateBotsList();
-}
-function openBotSelector(){
-  ['sandboxScreen','leaderboardScreen'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';});
-  document.getElementById('botSelectorScreen').style.display='flex';
-  const grid=document.getElementById('botClassGrid');
-  grid.innerHTML='';
-  for(const[key,cls]of Object.entries(CLASSES)){
-    const col=CC[key]||CC.WARRIOR;
-    const div=document.createElement('div');div.className='classCard';
-    div.innerHTML=`<div class="cicon" style="color:${col.m};filter:drop-shadow(0 0 8px ${col.m})">${cls.icon}</div><div class="cname" style="color:${col.m};text-shadow:0 0 8px ${col.m}">${key}</div>`;
-    div.onclick=()=>{if(sandboxBots.length<20){sandboxBots.push(key);closeBotSelector();updateBotsList();}};
-    grid.appendChild(div);
-  }
-}
-function closeBotSelector(){
-  document.getElementById('botSelectorScreen').style.display='none';
-  document.getElementById('sandboxScreen').style.display='flex';
-}
-function updateBotsList(){
-  const list=document.getElementById('botsList');
-  const cnt=document.getElementById('botCount');if(cnt)cnt.textContent=sandboxBots.length;
-  list.innerHTML=sandboxBots.map((botClass,idx)=>{const col=CC[botClass]||CC.WARRIOR;return `<span class="sbBotCard" style="border-color:${col.m};color:${col.m}">${CLASSES[botClass].icon} ${botClass}<span class="bx" onclick="removeSandboxBot(${idx})">✕</span></span>`;}).join('');
-}
-function removeSandboxBot(idx){
-  sandboxBots.splice(idx,1);
+  const clsKeys=Object.keys(CLASSES);
+  sandboxBots.push(makeBotObj(clsKeys[Math.floor(Math.random()*clsKeys.length)]));
   updateBotsList();
 }
 function addBulkBots(){
   const n=parseInt(document.getElementById('bulkBotCount').value)||5;
-  const classes=Object.keys(CLASSES);
-  const space=20-sandboxBots.length;
-  for(let i=0;i<Math.min(n,space);i++)sandboxBots.push(classes[Math.floor(Math.random()*classes.length)]);
+  const clsKeys=Object.keys(CLASSES);const space=20-sandboxBots.length;
+  for(let i=0;i<Math.min(n,space);i++)sandboxBots.push(makeBotObj(clsKeys[Math.floor(Math.random()*clsKeys.length)]));
   updateBotsList();
 }
+function clearAllBots(){sandboxBots=[];_expandedBots=new Set();updateBotsList();}
+function removeSandboxBot(idx){sandboxBots.splice(idx,1);_expandedBots=new Set([..._expandedBots].filter(i=>i!==idx).map(i=>i>idx?i-1:i));updateBotsList();}
+function toggleBotExpand(idx){
+  if(_expandedBots.has(idx)){_expandedBots.delete(idx);}else{_expandedBots.add(idx);}
+  updateBotsList();
+}
+function updateBotsList(){
+  const list=document.getElementById('botsList');
+  const cnt=document.getElementById('botCount');if(cnt)cnt.textContent=sandboxBots.length;
+  if(!sandboxBots.length){list.innerHTML='<div style="color:rgba(57,255,20,0.2);font-size:9px;letter-spacing:3px;padding:12px 4px">NO BOTS — CLICK + ADD BOT TO BEGIN</div>';return;}
+  list.innerHTML=sandboxBots.map((bot,idx)=>{
+    const col=CC[bot.cls]||CC.WARRIOR;const cls=CLASSES[bot.cls];
+    const isExp=_expandedBots.has(idx);
+    const upgCounts={};bot.upgrades.forEach(id=>{upgCounts[id]=(upgCounts[id]||0)+1;});
+    const diffLabel={easy:'EASY',normal:'NORMAL',hard:'HARD'}[bot.diff]||'NORMAL';
+    const diffCol={easy:'rgba(57,255,20,0.6)',normal:'rgba(255,184,0,0.7)',hard:'rgba(255,58,58,0.8)'}[bot.diff];
+    const upgCount=bot.upgrades.length;
+    return`<div class="botEditorCard">
+      <div class="botCardHeader" onclick="toggleBotExpand(${idx})">
+        <span class="botCardIcon" style="color:${col.m}">${cls.icon}</span>
+        <span class="botCardName" style="color:${col.m}">${bot.cls} <span style="color:rgba(57,255,20,0.35);font-size:8px">#${idx+1}</span></span>
+        <span class="botCardMeta" style="color:${diffCol}">${diffLabel}</span>
+        ${bot.godMode?`<span class="botCardMeta" style="color:#ffd700">· GOD</span>`:''}
+        ${upgCount?`<span class="botCardMeta">&nbsp;· ${upgCount} UPG</span>`:''}
+        <span class="botCardExpand${isExp?' open':''}">▼</span>
+      </div>
+      ${isExp?renderBotEditor(idx,bot):''}
+    </div>`;
+  }).join('');
+}
+function renderBotEditor(idx,bot){
+  const upgCounts={};bot.upgrades.forEach(id=>{upgCounts[id]=(upgCounts[id]||0)+1;});
+  const clsOpts=Object.keys(CLASSES).map(k=>`<option value="${k}"${k===bot.cls?' selected':''}>${k}</option>`).join('');
+  const upgChips=Object.entries(upgCounts).map(([id,cnt])=>{
+    const u=UPGRADES.find(u=>u.id===id);if(!u)return'';
+    return`<span class="upgradeChip" title="${u.desc}" style="font-size:8px"><span class="chipMinus" onclick="adjustBotUpgrade(${idx},'${id}',-1)">−</span><span class="chipCount">${cnt}</span><span>${u.name}</span><span class="chipPlus" onclick="adjustBotUpgrade(${idx},'${id}',1)">+</span></span>`;
+  }).join('');
+  const upgSel=UPGRADES.map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
+  return`<div class="botEditorBody open">
+    <div class="botEdRow">
+      <span class="botEdLabel">CLASS</span>
+      <select class="botEdSelect" onchange="setBotCls(${idx},this.value)">${clsOpts}</select>
+    </div>
+    <div class="botEdRow">
+      <span class="botEdLabel">DIFFICULTY</span>
+      <div class="botEdToggle">
+        <button class="botEdToggleBtn${bot.diff==='easy'?' on':''}" onclick="setBotDiff(${idx},'easy')">EASY</button>
+        <button class="botEdToggleBtn${bot.diff==='normal'?' on':''}" onclick="setBotDiff(${idx},'normal')">NORMAL</button>
+        <button class="botEdToggleBtn${bot.diff==='hard'?' on':''}" onclick="setBotDiff(${idx},'hard')">HARD</button>
+      </div>
+    </div>
+    <div class="botEdRow">
+      <span class="botEdLabel">GOD MODE</span>
+      <div class="botEdToggle">
+        <button class="botEdToggleBtn${!bot.godMode?' on':''}" onclick="setBotGod(${idx},false)">OFF</button>
+        <button class="botEdToggleBtn${bot.godMode?' on':''}" onclick="setBotGod(${idx},true)">ON</button>
+      </div>
+    </div>
+    <div class="botEdRow" style="flex-direction:column;align-items:flex-start;gap:6px">
+      <span class="botEdLabel">UPGRADES</span>
+      <div>${upgChips||'<span style="color:rgba(57,255,20,0.2);font-size:9px;letter-spacing:2px">NONE</span>'}</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap">
+        <select class="botEdSelect" id="botupgsel-${idx}"><option value="">ADD UPGRADE...</option>${upgSel}</select>
+        <button class="sbPresetBtn" onclick="addBotUpgrade(${idx})" style="padding:3px 10px;font-size:9px">+1</button>
+        <button class="sbPresetBtn" onclick="setBotUpgrades(${idx},'all')" style="padding:3px 10px;font-size:9px">ALL ×1</button>
+        <button class="sbPresetBtn" onclick="setBotUpgrades(${idx},'random')" style="padding:3px 10px;font-size:9px">RANDOM</button>
+        <button class="sbPresetBtn" onclick="setBotUpgrades(${idx},'max')" style="padding:3px 10px;font-size:9px">MAX OUT</button>
+        <button class="sbPresetBtn" onclick="setBotUpgrades(${idx},'clear')" style="padding:3px 10px;font-size:9px;border-color:rgba(255,58,58,0.2);color:rgba(255,58,58,0.4)">CLEAR</button>
+      </div>
+    </div>
+    <div class="botEdRow" style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(57,255,20,0.08)">
+      <button class="sbPresetBtn" onclick="duplicateBot(${idx})" style="padding:4px 14px;font-size:9px">DUPLICATE</button>
+      <button class="botDelBtn" onclick="removeSandboxBot(${idx})">✕ REMOVE</button>
+    </div>
+  </div>`;
+}
+function setBotCls(idx,cls){if(sandboxBots[idx]){sandboxBots[idx].cls=cls;}updateBotsList();}
+function setBotDiff(idx,diff){if(sandboxBots[idx]){sandboxBots[idx].diff=diff;}updateBotsList();}
+function setBotGod(idx,on){if(sandboxBots[idx]){sandboxBots[idx].godMode=on;}updateBotsList();}
+function addBotUpgrade(idx){
+  const sel=document.getElementById('botupgsel-'+idx);if(!sel||!sel.value)return;
+  sandboxBots[idx].upgrades.push(sel.value);updateBotsList();
+}
+function adjustBotUpgrade(idx,id,delta){
+  const bot=sandboxBots[idx];if(!bot)return;
+  if(delta>0){bot.upgrades.push(id);}
+  else{const i=bot.upgrades.lastIndexOf(id);if(i>=0)bot.upgrades.splice(i,1);}
+  updateBotsList();
+}
+function setBotUpgrades(idx,mode){
+  const bot=sandboxBots[idx];if(!bot)return;
+  if(mode==='all'){bot.upgrades=[...bot.upgrades,...UPGRADES.map(u=>u.id)];}
+  else if(mode==='random'){bot.upgrades=[];const n=2+Math.floor(Math.random()*4);for(let i=0;i<n;i++)bot.upgrades.push(UPGRADES[Math.floor(Math.random()*UPGRADES.length)].id);}
+  else if(mode==='max'){bot.upgrades=[];for(let i=0;i<10;i++)bot.upgrades.push(UPGRADES[Math.floor(Math.random()*UPGRADES.length)].id);}
+  else if(mode==='clear'){bot.upgrades=[];}
+  updateBotsList();
+}
+function duplicateBot(idx){
+  if(sandboxBots.length>=20)return;
+  sandboxBots.splice(idx+1,0,JSON.parse(JSON.stringify(sandboxBots[idx])));updateBotsList();
+}
+function openBotSelector(){}function closeBotSelector(){}
+
 function startSandbox(){
   selectedClass=document.getElementById('sandboxPlayerClass').value;
-  gameMode='sandbox';
-  gameRunning=true;
-  onlineMode=false;
-  menuCrsVisible=false;
-  entities=[];
-  bullets=[];
-  particles=[];
-  pickups=[];
-  killFeedEntries=[];
-  sessionKills=0;
-  zoneRadius=MAP*0.5;
-  zoneTargetRadius=zoneRadius*0.55;
-  zoneCenter={x:MAP/2,y:MAP/2};
-  // Zone: disabled = never shrinks
+  gameMode='sandbox';gameRunning=true;onlineMode=false;menuCrsVisible=false;
+  entities=[];bullets=[];particles=[];pickups=[];killFeedEntries=[];sessionKills=0;
+  zoneRadius=MAP*0.5;zoneTargetRadius=zoneRadius*0.55;zoneCenter={x:MAP/2,y:MAP/2};
   zoneShrinkStart=sbZoneOn?Date.now()+zoneShrinkDelay:Date.now()+99999999;
-  gameStartTime=Date.now();
-  generateMap();
-  buildStaticMap();
+  gameStartTime=Date.now();generateMap();buildStaticMap();
   const pos=spawnPos();
   player=createTank(pos.x,pos.y,true,0,selectedClass,MY_ID);
-  // Apply player upgrades
   sandboxPlayerUpgrades.forEach(upgradeId=>{const u=UPGRADES.find(u=>u.id===upgradeId);if(u)u.apply(player);});
-  // God mode
-  player._godMode=sbGodMode;
-  entities.push(player);
-  // Bot difficulty speed multipliers
+  player._godMode=sbGodMode;entities.push(player);
   const diffMul={easy:0.55,normal:0.7,hard:1.0};
   for(let i=0;i<sandboxBots.length;i++){
-    const p=spawnPos();
-    const bot=createTank(p.x,p.y,false,i+1,sandboxBots[i]);
-    bot._diffMul=diffMul[sbBotDiff]||0.7;
-    // Bot upgrades
-    if(sbBotUpgrades==='random')applyRandomUpgrades(bot,Math.floor(Math.random()*5));
-    else if(sbBotUpgrades==='max')applyRandomUpgrades(bot,UPGRADES.length);
+    const botDef=sandboxBots[i];const p=spawnPos();
+    const bot=createTank(p.x,p.y,false,i+1,botDef.cls);
+    bot._diffMul=diffMul[botDef.diff]||0.7;
+    bot._godMode=botDef.godMode||false;
+    botDef.upgrades.forEach(upgradeId=>{const u=UPGRADES.find(u=>u.id===upgradeId);if(u)u.apply(bot);});
     entities.push(bot);
   }
-  camera.x=player.x-W/2;
-  camera.y=player.y-H/2;
-  document.getElementById('upgradePanel').style.display='none';
-  updateHUD();
-  requestAnimationFrame(gameLoop);
+  camera.x=player.x-W/2;camera.y=player.y-H/2;
+  document.getElementById('upgradePanel').style.display='none';updateHUD();requestAnimationFrame(gameLoop);
 }
-function updateSandboxPreview(){
-  selectedClass=document.getElementById('sandboxPlayerClass').value;
-}
+function updateSandboxPreview(){selectedClass=document.getElementById('sandboxPlayerClass').value;}
 
 // ── GAME INIT ────────────────────────────────────────────
 function seededRand(seed){let s=seed;return()=>{s=(s*16807)%2147483647;return(s-1)/2147483646;};}
