@@ -124,6 +124,62 @@ canvas{display:block}
 .cbl{bottom:14px;left:14px;border-bottom:1px solid rgba(57,255,20,0.4);border-left:1px solid rgba(57,255,20,0.4)}
 .cbr{bottom:14px;right:14px;border-bottom:1px solid rgba(57,255,20,0.4);border-right:1px solid rgba(57,255,20,0.4)}
 #controlHint{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);font-size:8px;letter-spacing:3px;color:rgba(57,255,20,0.18);white-space:nowrap}
+
+/* ── LEADERBOARD ── */
+#leaderboardScreen{position:absolute;top:0;left:0;width:100%;height:100%;background:var(--bg);display:none;flex-direction:column;justify-content:flex-start;align-items:center;color:var(--g);pointer-events:all;overflow-y:auto;padding:30px 0}
+#leaderboardScreen h2{font-family:'Orbitron',sans-serif;font-size:28px;letter-spacing:8px;margin-bottom:4px;text-shadow:0 0 14px var(--g)}
+.lbTabs{display:flex;gap:0;margin:20px 0 0;border:1px solid rgba(57,255,20,0.18)}
+.lbTab{padding:9px 24px;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;color:rgba(57,255,20,0.4);cursor:pointer;border-right:1px solid rgba(57,255,20,0.1);background:transparent;transition:all .15s}
+.lbTab:last-child{border-right:none}
+.lbTab:hover{color:var(--g);background:rgba(57,255,20,0.04)}
+.lbTab.active{color:var(--g);background:rgba(57,255,20,0.08);box-shadow:inset 0 -2px 0 var(--g)}
+.lbPanel{display:none;width:680px;max-width:95vw}
+.lbPanel.active{display:block}
+.lbSectionTitle{font-size:8px;letter-spacing:4px;color:rgba(57,255,20,0.3);margin:18px 0 10px;font-family:'Orbitron',sans-serif}
+.statGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.statBox{background:rgba(57,255,20,0.025);border:1px solid rgba(57,255,20,0.12);padding:14px 16px;text-align:center}
+.statBox .sv{font-family:'Orbitron',sans-serif;font-size:26px;font-weight:900;color:var(--g);text-shadow:0 0 12px var(--g)}
+.statBox .sk{font-size:8px;letter-spacing:3px;color:rgba(57,255,20,0.32);margin-top:5px}
+.rankBig{text-align:center;padding:20px;border:1px solid rgba(57,255,20,0.18);background:rgba(57,255,20,0.025);margin-bottom:14px}
+.rankBig .rl{font-family:'Orbitron',sans-serif;font-size:36px;font-weight:900;letter-spacing:6px;margin-bottom:6px}
+.rankBig .rp{font-size:11px;letter-spacing:3px;color:rgba(57,255,20,0.4)}
+.histRow{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border:1px solid rgba(57,255,20,0.08);margin-bottom:4px;font-size:10px;letter-spacing:1px;background:rgba(57,255,20,0.015)}
+.histRow .hr-place{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;min-width:50px}
+.histRow .hr-rp{font-size:11px}
+.histRow.h-win{border-color:rgba(57,255,20,0.3);background:rgba(57,255,20,0.04)}
+.histRow.h-top{border-color:rgba(255,184,0,0.25);background:rgba(255,184,0,0.03)}
+.hsRow{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border:1px solid rgba(57,255,20,0.1);margin-bottom:5px;background:rgba(57,255,20,0.018)}
+.hsRow.top1{border-color:rgba(255,215,0,0.4);background:rgba(255,215,0,0.04)}
+.hsRow.top2{border-color:rgba(192,192,192,0.3);background:rgba(192,192,192,0.03)}
+.hsRow.top3{border-color:rgba(205,127,50,0.3);background:rgba(205,127,50,0.03)}
+.hsRow .hsRank{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;min-width:40px;color:rgba(57,255,20,0.5)}
+.hsRow .hsName{flex:1;padding:0 10px}
+.hsRow .hsVal{font-family:'Orbitron',sans-serif;font-size:14px;color:var(--g)}
+.hsRow .hsMeta{font-size:8px;color:rgba(57,255,20,0.3);letter-spacing:1px}
+.hsEmpty{text-align:center;color:rgba(57,255,20,0.2);font-size:10px;letter-spacing:3px;padding:30px}
+
+/* ── SANDBOX ENHANCED ── */
+#sandboxScreen{position:absolute;top:0;left:0;width:100%;height:100%;background:var(--bg);display:none;flex-direction:column;justify-content:flex-start;align-items:center;color:var(--g);pointer-events:all;overflow-y:auto;padding:20px 0}
+#sandboxScreen h2{font-family:'Orbitron',sans-serif;font-size:28px;letter-spacing:8px;margin-bottom:4px;text-shadow:0 0 14px var(--g)}
+.sbSection{background:rgba(57,255,20,0.018);border:1px solid rgba(57,255,20,0.12);padding:16px 18px;margin-bottom:10px;width:700px;max-width:95vw}
+.sbSectionHead{font-size:8px;letter-spacing:4px;color:rgba(57,255,20,0.35);font-family:'Orbitron',sans-serif;margin-bottom:12px}
+.sbRow{display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+.sbLabel{font-size:10px;letter-spacing:2px;color:rgba(57,255,20,0.55);min-width:130px}
+.sbSelect{background:rgba(57,255,20,0.04);border:1px solid rgba(57,255,20,0.2);color:var(--g);font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;padding:6px 10px;cursor:pointer}
+.sbSelect:focus{outline:none;border-color:var(--g)}
+.sbToggle{display:flex;gap:0}
+.sbToggleBtn{padding:6px 16px;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;border:1px solid rgba(57,255,20,0.18);background:transparent;color:rgba(57,255,20,0.35);cursor:pointer;transition:all .15s}
+.sbToggleBtn.on{background:rgba(57,255,20,0.12);color:var(--g);border-color:var(--g)}
+.upgradeChip{display:inline-flex;align-items:center;background:rgba(57,255,20,0.08);border:1px solid rgba(57,255,20,0.25);padding:4px 9px;margin:2px;font-size:9px;letter-spacing:1px;gap:6px}
+.upgradeChip .chipX{cursor:pointer;color:rgba(255,58,58,0.6);font-size:11px;line-height:1}
+.upgradeChip .chipX:hover{color:var(--r)}
+.sbBotCard{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;margin:2px;border:1px solid rgba(57,255,20,0.2);background:rgba(57,255,20,0.04);font-size:9px;letter-spacing:1px}
+.sbBotCard .bx{cursor:pointer;color:rgba(255,58,58,0.5);margin-left:4px}
+.sbPresetBtn{background:rgba(57,255,20,0.03);border:1px solid rgba(57,255,20,0.15);color:rgba(57,255,20,0.45);font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;padding:8px 16px;cursor:pointer;transition:all .15s}
+.sbPresetBtn:hover{border-color:var(--g);color:var(--g);background:rgba(57,255,20,0.07)}
+.sbNum{background:rgba(57,255,20,0.04);border:1px solid rgba(57,255,20,0.2);color:var(--g);font-family:'Share Tech Mono',monospace;font-size:11px;padding:5px 10px;width:70px;text-align:center}
+.sbNum:focus{outline:none;border-color:var(--g)}
+.godBadge{display:inline-block;background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.4);color:#ffd700;font-size:8px;letter-spacing:3px;padding:2px 8px;margin-left:8px;vertical-align:middle;text-shadow:0 0 8px #ffd700}
 </style>
 </head>
 <body>
@@ -181,6 +237,8 @@ canvas{display:block}
     <div id="statsRow"></div>
     <button class="menuBtn primary" onclick="showClassSelect('bot')">► BOT MATCH</button>
     <button class="menuBtn" onclick="showOnlineOptions()">◈ RANKED ONLINE</button>
+    <button class="menuBtn" onclick="showSandbox()">⚗ SANDBOX MODE</button>
+    <button class="menuBtn" onclick="showLeaderboard()">★ LEADERBOARD</button>
     <div id="controlHint">WASD · MOUSE AIM · LMB FIRE · SPACE ABILITY</div>
   </div>
 
@@ -225,6 +283,147 @@ canvas{display:block}
     <div id="classGrid"></div>
     <button class="menuBtn primary" onclick="confirmClass()">DEPLOY →</button>
     <button class="menuBtn" onclick="goBackFromClass()" style="font-size:10px;padding:7px 22px;margin-top:4px;">← BACK</button>
+  </div>
+
+  <!-- ══ LEADERBOARD ══ -->
+  <div id="leaderboardScreen">
+    <div class="ctl"></div><div class="ctr"></div><div class="cbl"></div><div class="cbr"></div>
+    <h2>LEADERBOARD</h2>
+    <div class="sub" style="color:rgba(57,255,20,0.28);font-size:9px;letter-spacing:5px;margin-bottom:0">YOUR STATS · HISTORY · HIGH SCORES</div>
+    <div class="lbTabs">
+      <button class="lbTab active" onclick="switchLbTab('rank')">◈ RANK</button>
+      <button class="lbTab" onclick="switchLbTab('stats')">▣ STATS</button>
+      <button class="lbTab" onclick="switchLbTab('history')">◷ HISTORY</button>
+      <button class="lbTab" onclick="switchLbTab('hiscores')">★ HIGH SCORES</button>
+    </div>
+    <!-- RANK TAB -->
+    <div class="lbPanel active" id="lbPanel-rank" style="margin-top:18px">
+      <div class="rankBig" id="lbRankBig"></div>
+      <div class="lbSectionTitle">PROGRESSION</div>
+      <div id="lbProgBar" style="margin-bottom:14px"></div>
+      <div class="lbSectionTitle">TIER THRESHOLDS</div>
+      <div id="lbTierList"></div>
+    </div>
+    <!-- STATS TAB -->
+    <div class="lbPanel" id="lbPanel-stats">
+      <div class="lbSectionTitle">COMBAT OVERVIEW</div>
+      <div class="statGrid" id="lbStatGrid"></div>
+      <div class="lbSectionTitle">PER-CLASS WINS</div>
+      <div id="lbClassWins"></div>
+    </div>
+    <!-- HISTORY TAB -->
+    <div class="lbPanel" id="lbPanel-history">
+      <div class="lbSectionTitle">RECENT MATCHES (LAST 20)</div>
+      <div id="lbHistList"></div>
+    </div>
+    <!-- HIGH SCORES TAB -->
+    <div class="lbPanel" id="lbPanel-hiscores">
+      <div class="lbSectionTitle">MOST KILLS IN A GAME</div>
+      <div id="lbHsKills"></div>
+      <div class="lbSectionTitle" style="margin-top:16px">BEST PLACEMENT</div>
+      <div id="lbHsPlace"></div>
+    </div>
+    <button class="menuBtn" onclick="showMenu()" style="margin-top:18px;margin-bottom:30px">← BACK TO MENU</button>
+  </div>
+
+  <!-- ══ SANDBOX ══ -->
+  <div id="sandboxScreen">
+    <div class="ctl"></div><div class="ctr"></div><div class="cbl"></div><div class="cbr"></div>
+    <h2>SANDBOX MODE</h2>
+    <div class="sub" style="color:rgba(57,255,20,0.28);font-size:9px;letter-spacing:5px;margin-bottom:16px">FREE EXPERIMENT — NO RANK CHANGE</div>
+
+    <!-- PRESETS -->
+    <div class="sbSection">
+      <div class="sbSectionHead">⚡ QUICK PRESETS</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="sbPresetBtn" onclick="loadPreset('duel')">1v1 DUEL</button>
+        <button class="sbPresetBtn" onclick="loadPreset('horde')">HORDE (10 BOTS)</button>
+        <button class="sbPresetBtn" onclick="loadPreset('godmode')">GOD MODE</button>
+        <button class="sbPresetBtn" onclick="loadPreset('maxUpgrades')">FULLY UPGRADED</button>
+        <button class="sbPresetBtn" onclick="loadPreset('sniperwars')">SNIPER WARS</button>
+        <button class="sbPresetBtn" onclick="loadPreset('clear')">CLEAR ALL</button>
+      </div>
+    </div>
+
+    <!-- PLAYER SETUP -->
+    <div class="sbSection">
+      <div class="sbSectionHead">◉ YOUR TANK</div>
+      <div class="sbRow">
+        <span class="sbLabel">CLASS</span>
+        <select id="sandboxPlayerClass" class="sbSelect" onchange="updateSandboxPreview()">
+          <option>SCOUT</option><option selected>WARRIOR</option><option>HEAVY</option><option>SNIPER</option><option>TWIN</option>
+        </select>
+      </div>
+      <div class="sbRow">
+        <span class="sbLabel">GOD MODE</span>
+        <div class="sbToggle">
+          <button class="sbToggleBtn" id="godBtn-off" onclick="setSbGod(false)">OFF</button>
+          <button class="sbToggleBtn" id="godBtn-on" onclick="setSbGod(true)">ON</button>
+        </div>
+        <span id="godBadgeEl" style="display:none" class="godBadge">INVINCIBLE</span>
+      </div>
+      <div class="sbRow">
+        <span class="sbLabel">STARTING UPGRADES</span>
+        <select id="playerUpgradeAdd" class="sbSelect" onchange="addPlayerUpgrade()">
+          <option value="">ADD UPGRADE...</option>
+        </select>
+        <button class="sbPresetBtn" onclick="addAllUpgrades()" style="padding:5px 12px;font-size:9px">ALL UPGRADES</button>
+      </div>
+      <div id="playerUpgradeList" style="margin-top:6px;min-height:24px"></div>
+    </div>
+
+    <!-- BOTS -->
+    <div class="sbSection">
+      <div class="sbSectionHead">⬟ BOTS (<span id="botCount">0</span>/20)</div>
+      <div class="sbRow">
+        <span class="sbLabel">BOT UPGRADES</span>
+        <div class="sbToggle">
+          <button class="sbToggleBtn on" id="botUpg-none" onclick="setSbBotUpgrades('none')">NONE</button>
+          <button class="sbToggleBtn" id="botUpg-random" onclick="setSbBotUpgrades('random')">RANDOM</button>
+          <button class="sbToggleBtn" id="botUpg-max" onclick="setSbBotUpgrades('max')">MAXED</button>
+        </div>
+      </div>
+      <div class="sbRow">
+        <span class="sbLabel">BOT DIFFICULTY</span>
+        <div class="sbToggle">
+          <button class="sbToggleBtn" id="botDiff-easy" onclick="setSbDiff('easy')">EASY</button>
+          <button class="sbToggleBtn on" id="botDiff-normal" onclick="setSbDiff('normal')">NORMAL</button>
+          <button class="sbToggleBtn" id="botDiff-hard" onclick="setSbDiff('hard')">HARD</button>
+        </div>
+      </div>
+      <div class="sbRow">
+        <span class="sbLabel">ADD BOTS</span>
+        <button class="sbPresetBtn" onclick="addRandomBot()" style="padding:5px 12px;font-size:9px">+ RANDOM</button>
+        <button class="sbPresetBtn" onclick="openBotSelector()" style="padding:5px 12px;font-size:9px">+ PICK CLASS</button>
+        <input type="number" id="bulkBotCount" class="sbNum" min="1" max="20" value="5" placeholder="N">
+        <button class="sbPresetBtn" onclick="addBulkBots()" style="padding:5px 12px;font-size:9px">+ BULK ADD</button>
+      </div>
+      <div id="botsList" style="min-height:24px;max-height:120px;overflow-y:auto;margin-top:6px"></div>
+    </div>
+
+    <!-- ZONE SETTINGS -->
+    <div class="sbSection">
+      <div class="sbSectionHead">◎ ZONE SETTINGS</div>
+      <div class="sbRow">
+        <span class="sbLabel">ZONE SHRINK</span>
+        <div class="sbToggle">
+          <button class="sbToggleBtn on" id="zone-on" onclick="setSbZone(true)">ON</button>
+          <button class="sbToggleBtn" id="zone-off" onclick="setSbZone(false)">OFF (INFINITE)</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin:16px 0 30px">
+      <button class="menuBtn primary" onclick="startSandbox()">▶ LAUNCH SANDBOX</button>
+      <button class="menuBtn" onclick="showMenu()">← BACK</button>
+    </div>
+  </div>
+
+  <div id="botSelectorScreen" style="display:none">
+    <div class="ctl"></div><div class="ctr"></div><div class="cbl"></div><div class="cbr"></div>
+    <h2>SELECT BOT CLASS</h2>
+    <div id="botClassGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:20px;width:80%;max-width:600px"></div>
+    <button class="menuBtn" onclick="closeBotSelector()">← BACK</button>
   </div>
 </div>
 
@@ -312,10 +511,11 @@ function drawMenuBg(){
 }
 
 // ── PERSISTENCE ─────────────────────────────────────────
-const DS='{"rp":0,"wins":0,"kills":0,"games":0,"peakRp":0,"history":[]}';
+const DS='{"rp":0,"wins":0,"kills":0,"games":0,"peakRp":0,"history":[],"classWins":{},"hsBestKills":[],"hsBestPlace":[]}';
 let pd=JSON.parse(localStorage.getItem('tankroyale')||DS);
 if(pd.xp!==undefined&&pd.rp===undefined){pd.rp=pd.xp;pd.peakRp=pd.xp;pd.history=[];delete pd.xp;}
 if(!pd.history)pd.history=[];if(!pd.peakRp)pd.peakRp=pd.rp||0;
+if(!pd.classWins)pd.classWins={};if(!pd.hsBestKills)pd.hsBestKills=[];if(!pd.hsBestPlace)pd.hsBestPlace=[];
 function saveData(){localStorage.setItem('tankroyale',JSON.stringify(pd));}
 const TIERS=[
   {name:'BRONZE',  minRp:0,   divs:3,rpPerDiv:100, color:'#cd7f32'},
@@ -368,7 +568,7 @@ function xpForLevel(l){return 60+l*55;}
 // ── MQTT ────────────────────────────────────────────────
 const MY_ID=Math.random().toString(36).slice(2,10);
 let mqttClient=null,mqttConnected=false,lobbyCode=null,lobbyPlayers={};
-let isLobbyHost=false,lobbyCountdown=60,lobbyTimer=null,pendingMode=null,onlineMode=false;
+let isLobbyHost=false,lobbyCountdown=60,lobbyTimer=null,pendingMode=null,onlineMode=false,sandboxBots=[],sandboxPlayerUpgrades=[];
 function genCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';return Array.from({length:4},()=>c[Math.floor(Math.random()*c.length)]).join('');}
 function mqttTopic(code,sub){return`tankroyale/${code}/${sub}`;}
 function initMQTT(cb){
@@ -590,7 +790,7 @@ document.addEventListener('mousedown',e=>{
 function showMenu(){
   gameRunning=false;onlineMode=false;menuCrsVisible=true;
   if(netStateInterval){clearInterval(netStateInterval);netStateInterval=null;}
-  ['classScreen','onlineScreen','lobbyScreen','deathScreen','winScreen'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  ['classScreen','onlineScreen','lobbyScreen','deathScreen','winScreen','leaderboardScreen','sandboxScreen','botSelectorScreen'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
   document.getElementById('menu').style.display='flex';updateMenuRankCard();
   document.getElementById('statsRow').textContent=`${pd.games} GAMES · ${pd.kills} KILLS · ${pd.wins} WINS`;
   requestAnimationFrame(menuLoop);
@@ -606,7 +806,15 @@ function updateMenuRankCard(){
 function renderRpResult(elId,place,kills,won){
   const el=document.getElementById(elId);if(!el)return;
   const rp=calcRpChange(place,kills);const res=applyRpChange(rp.total);
-  pd.games++;pd.kills+=kills;if(won)pd.wins++;saveData();
+  pd.games++;pd.kills+=kills;if(won){pd.wins++;pd.classWins=pd.classWins||{};pd.classWins[selectedClass]=(pd.classWins[selectedClass]||0)+1;}
+  // Record match history
+  const histEntry={place,kills,won,rpChange:rp.total,cls:selectedClass,time:Date.now()};
+  pd.history.push(histEntry);if(pd.history.length>50)pd.history.splice(0,pd.history.length-50);
+  // Update high scores
+  pd.hsBestKills=pd.hsBestKills||[];pd.hsBestPlace=pd.hsBestPlace||[];
+  pd.hsBestKills.push({v:kills,cls:selectedClass,time:Date.now()});pd.hsBestKills.sort((a,b)=>b.v-a.v);pd.hsBestKills=pd.hsBestKills.slice(0,10);
+  pd.hsBestPlace.push({v:place,cls:selectedClass,time:Date.now()});pd.hsBestPlace.sort((a,b)=>a.v-b.v);pd.hsBestPlace=pd.hsBestPlace.slice(0,10);
+  saveData();
   const ra=getRankInfo(res.after),rb2=getRankInfo(res.before);
   const prom=ra.label!==rb2.label&&res.after>res.before,dem=ra.label!==rb2.label&&res.after<res.before;
   const sign=rp.total>=0?'+':'';
@@ -642,6 +850,235 @@ function buildClassGrid(){
     div.onclick=()=>{selectedClass=key;document.querySelectorAll('.classCard').forEach(c=>c.classList.remove('selected'));div.classList.add('selected');};
     grid.appendChild(div);
   }
+}
+let _lbActiveTab='rank';
+function switchLbTab(tab){
+  _lbActiveTab=tab;
+  document.querySelectorAll('.lbTab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.lbPanel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.lbTab').forEach(t=>{if(t.textContent.toLowerCase().includes(tab.slice(0,3)))t.classList.add('active');});
+  const p=document.getElementById('lbPanel-'+tab);if(p)p.classList.add('active');
+}
+function showLeaderboard(){
+  ['menu','classScreen','onlineScreen','lobbyScreen','sandboxScreen','botSelectorScreen'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';});
+  document.getElementById('leaderboardScreen').style.display='flex';
+  _lbActiveTab='rank';
+  document.querySelectorAll('.lbTab').forEach((t,i)=>t.classList.toggle('active',i===0));
+  document.querySelectorAll('.lbPanel').forEach((p,i)=>p.classList.toggle('active',i===0));
+
+  const rank=getRankInfo(pd.rp);
+  const pct=rank.isMaster?100:Math.min(100,(rank.rpInDiv/rank.rpPerDiv)*100);
+
+  // RANK TAB
+  document.getElementById('lbRankBig').innerHTML=`
+    <div class="rl" style="color:${rank.color};text-shadow:0 0 20px ${rank.color}">${rank.label}</div>
+    <div class="rp">${pd.rp} RP &nbsp;·&nbsp; PEAK: ${pd.peakRp} RP</div>`;
+  document.getElementById('lbProgBar').innerHTML=`
+    <div style="display:flex;justify-content:space-between;font-size:8px;color:rgba(57,255,20,0.3);margin-bottom:5px"><span>${rank.label}</span><span>${rank.isMaster?'MAX':Math.round(pct)+'%'}</span></div>
+    <div style="height:5px;background:rgba(57,255,20,0.07);border:1px solid rgba(57,255,20,0.12)"><div style="height:100%;width:${pct}%;background:${rank.color};box-shadow:0 0 10px ${rank.color};transition:width .6s"></div></div>`;
+  const tierHtml=TIERS.map(t=>{
+    const isC=pd.rp>=t.minRp,isA=rank.tier.name===t.name;
+    return`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 12px;margin-bottom:3px;border:1px solid ${isA?t.color:'rgba(57,255,20,0.07)'};background:${isA?'rgba(57,255,20,0.04)':'transparent'};opacity:${isC?1:0.4}">
+      <span style="color:${t.color};font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:3px">${t.name}</span>
+      <span style="font-size:9px;color:rgba(57,255,20,0.4);letter-spacing:2px">${t.minRp} RP${isA?' ◄ YOU':''}</span>
+    </div>`;}).join('');
+  document.getElementById('lbTierList').innerHTML=tierHtml;
+
+  // STATS TAB
+  const avgK=pd.games>0?(pd.kills/pd.games).toFixed(1):'—';
+  const wr=pd.games>0?(pd.wins/pd.games*100).toFixed(1)+'%':'—';
+  document.getElementById('lbStatGrid').innerHTML=[
+    ['WINS',pd.wins],['GAMES',pd.games],['WIN RATE',wr],
+    ['TOTAL KILLS',pd.kills],['AVG KILLS',avgK],['PEAK RP',pd.peakRp]
+  ].map(([k,v])=>`<div class="statBox"><div class="sv">${v}</div><div class="sk">${k}</div></div>`).join('');
+  const cw=pd.classWins;
+  document.getElementById('lbClassWins').innerHTML=Object.keys(CLASSES).map(k=>{
+    const col=CC[k]||CC.WARRIOR;const w=cw[k]||0;
+    return`<div class="histRow" style="border-color:${w>0?col.m:'rgba(57,255,20,0.06)'}">
+      <span style="color:${col.m}">${CLASSES[k].icon} ${k}</span>
+      <span style="font-family:'Orbitron',sans-serif;font-size:14px;color:${w>0?col.m:'rgba(57,255,20,0.2)'}">${w} WIN${w!==1?'S':''}</span>
+    </div>`;}).join('');
+
+  // HISTORY TAB
+  const hist=[...(pd.history||[])].reverse().slice(0,20);
+  if(!hist.length){document.getElementById('lbHistList').innerHTML='<div class="hsEmpty">NO MATCHES PLAYED YET</div>';}
+  else{
+    document.getElementById('lbHistList').innerHTML=hist.map(h=>{
+      const cls=h.won?'h-win':h.place<=5?'h-top':'';
+      const rpSign=h.rpChange>=0?'+':'';
+      const date=new Date(h.time||Date.now());
+      const ds=`${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2,'0')}`;
+      return`<div class="histRow ${cls}">
+        <span class="hr-place" style="color:${h.won?'var(--g)':h.place<=5?'var(--a)':'rgba(57,255,20,0.5)'}">#${h.place}</span>
+        <span style="font-size:9px;color:rgba(57,255,20,0.5)">${h.cls||'?'} · ${h.kills}K</span>
+        <span class="hr-rp" style="color:${h.rpChange>=0?'var(--g)':'var(--r)'}">${rpSign}${h.rpChange} RP</span>
+        <span style="font-size:8px;color:rgba(57,255,20,0.3)">${ds}</span>
+      </div>`;}).join('');
+  }
+
+  // HIGH SCORES
+  const hsK=[...(pd.hsBestKills||[])].sort((a,b)=>b.v-a.v).slice(0,5);
+  const hsP=[...(pd.hsBestPlace||[])].sort((a,b)=>a.v-b.v).slice(0,5);
+  const topClass=['top1','top2','top3'];
+  document.getElementById('lbHsKills').innerHTML=hsK.length?hsK.map((h,i)=>
+    `<div class="hsRow ${topClass[i]||''}"><span class="hsRank">${['🥇','🥈','🥉','4','5'][i]}</span><span class="hsName">${h.cls||'WARRIOR'}</span><span class="hsMeta">${new Date(h.time||0).toLocaleDateString()}</span><span class="hsVal">${h.v} KILLS</span></div>`).join(''):'<div class="hsEmpty">PLAY A MATCH TO SET A RECORD</div>';
+  document.getElementById('lbHsPlace').innerHTML=hsP.length?hsP.map((h,i)=>
+    `<div class="hsRow ${topClass[i]||''}"><span class="hsRank">${['🥇','🥈','🥉','4','5'][i]}</span><span class="hsName">${h.cls||'WARRIOR'}</span><span class="hsMeta">${new Date(h.time||0).toLocaleDateString()}</span><span class="hsVal">#${h.v} PLACE</span></div>`).join(''):'<div class="hsEmpty">PLAY A MATCH TO SET A RECORD</div>';
+}
+let sbGodMode=false,sbBotUpgrades='none',sbBotDiff='normal',sbZoneOn=true;
+
+function showSandbox(){
+  ['menu','classScreen','onlineScreen','lobbyScreen','leaderboardScreen','botSelectorScreen'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';});
+  document.getElementById('sandboxScreen').style.display='flex';
+  selectedClass='WARRIOR';
+  sandboxBots=[];
+  sandboxPlayerUpgrades=[];
+  sbGodMode=false;sbBotUpgrades='none';sbBotDiff='normal';sbZoneOn=true;
+  document.getElementById('sandboxPlayerClass').value='WARRIOR';
+  updatePlayerUpgradeDisplay();
+  updateBotsList();
+  document.getElementById('botCount').textContent='0';
+  // Populate upgrade select with ALL upgrades
+  const sel=document.getElementById('playerUpgradeAdd');
+  sel.innerHTML='<option value="">ADD UPGRADE...</option>'+UPGRADES.map(u=>`<option value="${u.id}">${u.name} — ${u.desc}</option>`).join('');
+  // Sync toggle states
+  setSbGod(false);setSbBotUpgrades('none');setSbDiff('normal');setSbZone(true);
+}
+function setSbGod(on){
+  sbGodMode=on;
+  document.getElementById('godBtn-off').className='sbToggleBtn'+(on?'':' on');
+  document.getElementById('godBtn-on').className='sbToggleBtn'+(on?' on':'');
+  document.getElementById('godBadgeEl').style.display=on?'inline-block':'none';
+}
+function setSbBotUpgrades(v){
+  sbBotUpgrades=v;
+  ['none','random','max'].forEach(x=>{document.getElementById('botUpg-'+x).className='sbToggleBtn'+(v===x?' on':'');});
+}
+function setSbDiff(v){
+  sbBotDiff=v;
+  ['easy','normal','hard'].forEach(x=>{document.getElementById('botDiff-'+x).className='sbToggleBtn'+(v===x?' on':'');});
+}
+function setSbZone(on){
+  sbZoneOn=on;
+  document.getElementById('zone-on').className='sbToggleBtn'+(on?' on':'');
+  document.getElementById('zone-off').className='sbToggleBtn'+(on?'':' on');
+}
+function loadPreset(name){
+  const cls=Object.keys(CLASSES);
+  if(name==='clear'){sandboxBots=[];sandboxPlayerUpgrades=[];sbGodMode=false;setSbGod(false);updateBotsList();updatePlayerUpgradeDisplay();return;}
+  if(name==='duel'){sandboxBots=[cls[Math.floor(Math.random()*cls.length)]];setSbBotUpgrades('none');setSbDiff('normal');setSbZone(true);updateBotsList();return;}
+  if(name==='horde'){sandboxBots=Array.from({length:10},()=>cls[Math.floor(Math.random()*cls.length)]);setSbBotUpgrades('random');setSbDiff('normal');setSbZone(true);updateBotsList();return;}
+  if(name==='godmode'){sandboxPlayerUpgrades=UPGRADES.map(u=>u.id);setSbGod(true);updatePlayerUpgradeDisplay();return;}
+  if(name==='maxUpgrades'){sandboxPlayerUpgrades=UPGRADES.map(u=>u.id);setSbGod(false);updatePlayerUpgradeDisplay();return;}
+  if(name==='sniperwars'){sandboxBots=Array.from({length:8},()=>'SNIPER');document.getElementById('sandboxPlayerClass').value='SNIPER';selectedClass='SNIPER';setSbBotUpgrades('random');updateBotsList();return;}
+}
+function addAllUpgrades(){
+  sandboxPlayerUpgrades=UPGRADES.map(u=>u.id);
+  updatePlayerUpgradeDisplay();
+}
+function addPlayerUpgrade(){
+  const select=document.getElementById('playerUpgradeAdd');
+  const upgradeId=select.value;
+  if(!upgradeId)return;
+  if(sandboxPlayerUpgrades.includes(upgradeId)){select.value='';return;}
+  sandboxPlayerUpgrades.push(upgradeId);
+  updatePlayerUpgradeDisplay();
+  select.value='';
+}
+function updatePlayerUpgradeDisplay(){
+  const list=document.getElementById('playerUpgradeList');
+  list.innerHTML=sandboxPlayerUpgrades.map(id=>{const u=UPGRADES.find(u=>u.id===id);return `<span class="upgradeChip">${u.name}<span class="chipX" onclick="removeSandboxUpgrade('${id}')">✕</span></span>`;}).join('');
+}
+function removeSandboxUpgrade(id){
+  sandboxPlayerUpgrades.splice(sandboxPlayerUpgrades.indexOf(id),1);
+  updatePlayerUpgradeDisplay();
+}
+function addRandomBot(){
+  if(sandboxBots.length>=20)return;
+  const classes=Object.keys(CLASSES);
+  const botClass=classes[Math.floor(Math.random()*classes.length)];
+  sandboxBots.push(botClass);
+  updateBotsList();
+}
+function openBotSelector(){
+  ['sandboxScreen','leaderboardScreen'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';});
+  document.getElementById('botSelectorScreen').style.display='flex';
+  const grid=document.getElementById('botClassGrid');
+  grid.innerHTML='';
+  for(const[key,cls]of Object.entries(CLASSES)){
+    const col=CC[key]||CC.WARRIOR;
+    const div=document.createElement('div');div.className='classCard';
+    div.innerHTML=`<div class="cicon" style="color:${col.m};filter:drop-shadow(0 0 8px ${col.m})">${cls.icon}</div><div class="cname" style="color:${col.m};text-shadow:0 0 8px ${col.m}">${key}</div>`;
+    div.onclick=()=>{if(sandboxBots.length<20){sandboxBots.push(key);closeBotSelector();updateBotsList();}};
+    grid.appendChild(div);
+  }
+}
+function closeBotSelector(){
+  document.getElementById('botSelectorScreen').style.display='none';
+  document.getElementById('sandboxScreen').style.display='flex';
+}
+function updateBotsList(){
+  const list=document.getElementById('botsList');
+  const cnt=document.getElementById('botCount');if(cnt)cnt.textContent=sandboxBots.length;
+  list.innerHTML=sandboxBots.map((botClass,idx)=>{const col=CC[botClass]||CC.WARRIOR;return `<span class="sbBotCard" style="border-color:${col.m};color:${col.m}">${CLASSES[botClass].icon} ${botClass}<span class="bx" onclick="removeSandboxBot(${idx})">✕</span></span>`;}).join('');
+}
+function removeSandboxBot(idx){
+  sandboxBots.splice(idx,1);
+  updateBotsList();
+}
+function addBulkBots(){
+  const n=parseInt(document.getElementById('bulkBotCount').value)||5;
+  const classes=Object.keys(CLASSES);
+  const space=20-sandboxBots.length;
+  for(let i=0;i<Math.min(n,space);i++)sandboxBots.push(classes[Math.floor(Math.random()*classes.length)]);
+  updateBotsList();
+}
+function startSandbox(){
+  selectedClass=document.getElementById('sandboxPlayerClass').value;
+  gameMode='sandbox';
+  gameRunning=true;
+  onlineMode=false;
+  menuCrsVisible=false;
+  entities=[];
+  bullets=[];
+  particles=[];
+  pickups=[];
+  killFeedEntries=[];
+  sessionKills=0;
+  zoneRadius=MAP*0.5;
+  zoneTargetRadius=zoneRadius*0.55;
+  zoneCenter={x:MAP/2,y:MAP/2};
+  // Zone: disabled = never shrinks
+  zoneShrinkStart=sbZoneOn?Date.now()+zoneShrinkDelay:Date.now()+99999999;
+  gameStartTime=Date.now();
+  generateMap();
+  buildStaticMap();
+  const pos=spawnPos();
+  player=createTank(pos.x,pos.y,true,0,selectedClass,MY_ID);
+  // Apply player upgrades
+  sandboxPlayerUpgrades.forEach(upgradeId=>{const u=UPGRADES.find(u=>u.id===upgradeId);if(u)u.apply(player);});
+  // God mode
+  player._godMode=sbGodMode;
+  entities.push(player);
+  // Bot difficulty speed multipliers
+  const diffMul={easy:0.55,normal:0.7,hard:1.0};
+  for(let i=0;i<sandboxBots.length;i++){
+    const p=spawnPos();
+    const bot=createTank(p.x,p.y,false,i+1,sandboxBots[i]);
+    bot._diffMul=diffMul[sbBotDiff]||0.7;
+    // Bot upgrades
+    if(sbBotUpgrades==='random')applyRandomUpgrades(bot,Math.floor(Math.random()*5));
+    else if(sbBotUpgrades==='max')applyRandomUpgrades(bot,UPGRADES.length);
+    entities.push(bot);
+  }
+  camera.x=player.x-W/2;
+  camera.y=player.y-H/2;
+  document.getElementById('upgradePanel').style.display='none';
+  updateHUD();
+  requestAnimationFrame(gameLoop);
+}
+function updateSandboxPreview(){
+  selectedClass=document.getElementById('sandboxPlayerClass').value;
 }
 
 // ── GAME INIT ────────────────────────────────────────────
@@ -765,7 +1202,8 @@ function updateAI(tank,dt){
   }
   if(tank.aiState==='chase'&&tank.aiTarget){const ang=Math.atan2(tank.aiTarget.y-tank.y,tank.aiTarget.x-tank.x);tank.aiMoveAngle=ang;tank.turretAngle=ang;if(nd<580)fireBullet(tank);if(Math.random()<0.003)useAbility(tank);}
   else tank.turretAngle=tank.aiMoveAngle;
-  tank.angle=tank.aiMoveAngle;tank.vx=Math.cos(tank.aiMoveAngle)*tank.speed*0.7;tank.vy=Math.sin(tank.aiMoveAngle)*tank.speed*0.7;
+  const spMul=tank._diffMul||0.7;
+  tank.angle=tank.aiMoveAngle;tank.vx=Math.cos(tank.aiMoveAngle)*tank.speed*spMul;tank.vy=Math.sin(tank.aiMoveAngle)*tank.speed*spMul;
 }
 function updatePlayer(){
   if(!player||!player.alive)return;let dx=0,dy=0;
@@ -873,7 +1311,7 @@ function updateHUD(){
   document.getElementById('xpFill').style.width=(player.xp/player.xpToNext*100)+'%';
   document.getElementById('lvlLabel').textContent='LV '+player.level;
   const col=CC[player.className]||CC.WARRIOR;
-  document.getElementById('classTag').innerHTML=`<span style="color:${col.m};text-shadow:0 0 8px ${col.m}">${player.className} ${player.classIcon}</span>${onlineMode?' <span style="color:rgba(57,255,20,0.28)">[ONLINE]</span>':''}`;
+  document.getElementById('classTag').innerHTML=`<span style="color:${col.m};text-shadow:0 0 8px ${col.m}">${player.className} ${player.classIcon}</span>${onlineMode?' <span style="color:rgba(57,255,20,0.28)">[ONLINE]</span>':''}${player._godMode?' <span style="color:#ffd700;text-shadow:0 0 8px #ffd700;font-size:9px">[GOD]</span>':''}${!sbZoneOn&&gameMode==='sandbox'?' <span style="color:rgba(0,229,255,0.5);font-size:9px">[∞ ZONE]</span>':''}`;
   document.getElementById('aliveCount').textContent='◈ '+entities.filter(e=>e.alive).length+' ALIVE';
   const ri=getRankInfo(pd.rp);const rb=document.getElementById('rankBadge');rb.textContent=ri.label+' · '+pd.rp+' RP';rb.style.color=ri.color;
   const now=Date.now(),cdL=Math.max(0,player.abilityCooldown-(now-player.abilityLastUsed)),cdP=1-cdL/player.abilityCooldown,pips=10,fill=Math.round(cdP*pips);
@@ -901,7 +1339,7 @@ function update(dt){
     tank.x=Math.max(tank.radius,Math.min(MAP-tank.radius,tank.x+tank.vx));
     tank.y=Math.max(tank.radius,Math.min(MAP-tank.radius,tank.y+tank.vy));
     if(tank.hitFlash>0)tank.hitFlash--;
-    const dz=dist(tank.x,tank.y,zoneCenter.x,zoneCenter.y);if(dz>zoneRadius){tank.hp-=0.18;if(tank.hp<=0)killTank(tank,null);}
+    const dz=dist(tank.x,tank.y,zoneCenter.x,zoneCenter.y);if(dz>zoneRadius&&!tank._godMode){tank.hp-=0.18;if(tank.hp<=0)killTank(tank,null);}
   }
   for(let i=bullets.length-1;i>=0;i--){
     const b=bullets[i];b.x+=b.vx;b.y+=b.vy;b.life--;
@@ -912,9 +1350,10 @@ function update(dt){
     for(const tank of entities){
       if(!tank.alive||tank===b.owner||tank.shielded||tank.isRemote)continue;
       if(distSq(b.x,b.y,tank.x,tank.y)<tank.radius*tank.radius){
-        tank.hp-=b.damage;tank.hitFlash=4;spawnExp(b.x,b.y,6,b.color,b.glow);
+        if(!tank._godMode){tank.hp-=b.damage;tank.hitFlash=4;}else{tank.hitFlash=2;}
+        spawnExp(b.x,b.y,6,b.color,b.glow);
         if(b.split&&b.hits===0)fireSplit(b);b.hits++;if(!b.pierce||b.hits>1){bullets.splice(i,1);gone=true;}
-        if(tank.hp<=0)killTank(tank,b.owner);break;
+        if(tank.hp<=0&&!tank._godMode)killTank(tank,b.owner);break;
       }
     }if(gone)continue;
   }
