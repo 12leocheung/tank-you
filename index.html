@@ -361,7 +361,7 @@ const UPGRADES=[
   {id:'pierce',name:'PIERCE',  desc:'Bullets pierce 1 extra', apply:t=>{t.pierce=true;}},
   {id:'split',name:'SPLITTER', desc:'Bullets split on hit',   apply:t=>{t.split=true;}},
   {id:'cd',   name:'COOLDOWN', desc:'-20% ability cooldown',  apply:t=>{t.abilityCooldown*=0.8;}},
-  {id:'multi',name:'MULTISHOT',desc:'Fire extra bullet',      apply:t=>{t.extraBarrel=true;}},
+  {id:'multi',name:'MULTISHOT',desc:'Fire extra bullet',      apply:t=>{t.extraBarrel++;}}
 ];
 function xpForLevel(l){return 60+l*55;}
 
@@ -659,14 +659,14 @@ function dist(x1,y1,x2,y2){return Math.sqrt((x2-x1)**2+(y2-y1)**2);}
 function distSq(x1,y1,x2,y2){const dx=x2-x1,dy=y2-y1;return dx*dx+dy*dy;}
 function createTank(x,y,isPlayer,id,clsName,netId){
   const cls=CLASSES[clsName]||CLASSES.WARRIOR;
-  return{x,y,id,netId:netId||null,angle:0,turretAngle:0,hp:cls.hp,maxHp:cls.hp,speed:cls.speed,damage:cls.damage,fireRate:cls.fireRate,bulletSpeed:cls.bulletSpeed,bulletLife:cls.bulletLife,radius:cls.radius,barrels:cls.barrels,className:clsName,classIcon:cls.icon,ability:cls.ability,abilityCooldown:cls.abilityCooldown,abilityLastUsed:0,regen:0,pierce:false,split:false,extraBarrel:false,isPlayer,isBot:!isPlayer,isRemote:false,alive:true,vx:0,vy:0,lastShot:0,kills:0,xp:0,level:1,xpToNext:xpForLevel(1),upgrades:[],aiState:'wander',aiTarget:null,aiMoveAngle:Math.random()*Math.PI*2,aiMoveTimer:0,name:isPlayer?'YOU':'BOT_'+Math.random().toString(36).slice(2,6).toUpperCase(),cloaked:false,shielded:false,_nx:null,_ny:null,hitFlash:0};
+  return{x,y,id,netId:netId||null,angle:0,turretAngle:0,hp:cls.hp,maxHp:cls.hp,speed:cls.speed,damage:cls.damage,fireRate:cls.fireRate,bulletSpeed:cls.bulletSpeed,bulletLife:cls.bulletLife,radius:cls.radius,barrels:cls.barrels,className:clsName,classIcon:cls.icon,ability:cls.ability,abilityCooldown:cls.abilityCooldown,abilityLastUsed:0,regen:0,pierce:false,split:false,extraBarrel:0,isPlayer,isBot:!isPlayer,isRemote:false,alive:true,vx:0,vy:0,lastShot:0,kills:0,xp:0,level:1,xpToNext:xpForLevel(1),upgrades:[],aiState:'wander',aiTarget:null,aiMoveAngle:Math.random()*Math.PI*2,aiMoveTimer:0,name:isPlayer?'YOU':'BOT_'+Math.random().toString(36).slice(2,6).toUpperCase(),cloaked:false,shielded:false,_nx:null,_ny:null,hitFlash:0};
 }
 function applyRandomUpgrades(tank,count){
-  const pool=UPGRADES.filter(u=>!(u.id==='pierce'&&tank.pierce)&&!(u.id==='split'&&tank.split)&&!(u.id==='multi'&&tank.extraBarrel));
+  const pool=UPGRADES.filter(u=>!(u.id==='pierce'&&tank.pierce)&&!(u.id==='split'&&tank.split));
   for(let i=0;i<count&&pool.length>0;i++){
     const idx=Math.floor(Math.random()*pool.length);const u=pool[idx];
     u.apply(tank);tank.upgrades.push(u.id);tank.level++;
-    if(u.id==='pierce')pool.splice(idx,1);else if(u.id==='split')pool.splice(idx,1);else if(u.id==='multi')pool.splice(idx,1);
+    if(u.id==='pierce')pool.splice(idx,1);else if(u.id==='split')pool.splice(idx,1);
   }
 }
 function startGame(mode,cls){
@@ -694,7 +694,7 @@ function startOnlineGame(data){
 function offerUpgrades(){
   gameRunning=false;const panel=document.getElementById('upgradePanel');panel.style.display='block';
   const btns=document.getElementById('upgradeBtns');btns.innerHTML='';
-  const pool=[...UPGRADES].filter(u=>!(u.id==='pierce'&&player.pierce)&&!(u.id==='split'&&player.split)&&!(u.id==='multi'&&player.extraBarrel));
+  const pool=[...UPGRADES].filter(u=>!(u.id==='pierce'&&player.pierce)&&!(u.id==='split'&&player.split));
   const choices=[];while(choices.length<3&&pool.length>0)choices.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
   choices.forEach(u=>{
     const btn=document.createElement('button');btn.className='upBtn';
@@ -721,7 +721,7 @@ function fireBullet(tank){
   tank.lastShot=now;if(tank.isPlayer)playShot(tank.className==='HEAVY'?0.58:tank.className==='SNIPER'?1.6:1);
   let angles=[tank.turretAngle];
   if(tank.barrels===2)angles=[tank.turretAngle-0.1,tank.turretAngle+0.1];
-  if(tank.extraBarrel)angles.push(tank.turretAngle+Math.PI/8*(Math.random()>.5?1:-1));
+  for(let i=0;i<tank.extraBarrel;i++)angles.push(tank.turretAngle+Math.PI/8*(Math.random()>.5?1:-1));
   const col=CC[tank.className]||CC.WARRIOR;
   for(const a of angles){
     const bx=tank.x+Math.cos(a)*(tank.radius+15),by=tank.y+Math.sin(a)*(tank.radius+15);
