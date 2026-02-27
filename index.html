@@ -932,6 +932,25 @@ let sbGodMode=false,sbZoneOn=true;
 // sandboxBots: array of {cls, upgrades[], godMode, diff}
 function makeBotObj(cls='WARRIOR'){return{cls,upgrades:[],godMode:false,diff:'normal'};}
 
+// ── IMPROVED SPAWN POSITION ──────────────────────────────
+function spawnPos(){
+  let x, y, attempts = 0;
+  const maxAttempts = 100;
+  
+  do {
+    x = 300 + Math.random() * (MAP - 600);
+    y = 300 + Math.random() * (MAP - 600);
+    attempts++;
+    
+    // If we can't find a spot after max attempts, just return a random position
+    if (attempts > maxAttempts) {
+      return { x: 500 + Math.random() * (MAP - 1000), y: 500 + Math.random() * (MAP - 1000) };
+    }
+  } while (entities.some(e => dist(e.x, e.y, x, y) < 150));
+  
+  return { x, y };
+}
+
 function showSandbox(){
   ['menu','classScreen','onlineScreen','lobbyScreen','leaderboardScreen'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';});
   document.getElementById('sandboxScreen').style.display='flex';
@@ -1110,29 +1129,81 @@ function duplicateBot(idx){
 }
 function openBotSelector(){}function closeBotSelector(){}
 
+// ── FIXED SANDBOX START FUNCTION ─────────────────────────
 function startSandbox(){
-  selectedClass=document.getElementById('sandboxPlayerClass').value;
-  gameMode='sandbox';gameRunning=true;onlineMode=false;menuCrsVisible=false;
-  entities=[];bullets=[];particles=[];pickups=[];killFeedEntries=[];sessionKills=0;
-  zoneRadius=MAP*0.5;zoneTargetRadius=zoneRadius*0.55;zoneCenter={x:MAP/2,y:MAP/2};
-  zoneShrinkStart=sbZoneOn?Date.now()+zoneShrinkDelay:Date.now()+99999999;
-  gameStartTime=Date.now();generateMap();buildStaticMap();
-  const pos=spawnPos();
-  player=createTank(pos.x,pos.y,true,0,selectedClass,MY_ID);
-  sandboxPlayerUpgrades.forEach(upgradeId=>{const u=UPGRADES.find(u=>u.id===upgradeId);if(u)u.apply(player);});
-  player._godMode=sbGodMode;entities.push(player);
-  const diffMul={easy:0.55,normal:0.7,hard:1.0};
-  for(let i=0;i<sandboxBots.length;i++){
-    const botDef=sandboxBots[i];const p=spawnPos();
-    const bot=createTank(p.x,p.y,false,i+1,botDef.cls);
-    bot._diffMul=diffMul[botDef.diff]||0.7;
-    bot._godMode=botDef.godMode||false;
-    botDef.upgrades.forEach(upgradeId=>{const u=UPGRADES.find(u=>u.id===upgradeId);if(u)u.apply(bot);});
+  console.log("Starting sandbox mode...");
+  selectedClass = document.getElementById('sandboxPlayerClass').value;
+  gameMode = 'sandbox';
+  gameRunning = true;
+  onlineMode = false;
+  menuCrsVisible = false;
+  
+  // Reset all game arrays
+  entities = [];
+  bullets = [];
+  particles = [];
+  pickups = [];
+  killFeedEntries = [];
+  sessionKills = 0;
+  
+  // Zone setup
+  zoneRadius = MAP * 0.5;
+  zoneTargetRadius = zoneRadius * 0.55;
+  zoneCenter = { x: MAP / 2, y: MAP / 2 };
+  zoneShrinkStart = sbZoneOn ? Date.now() + zoneShrinkDelay : Date.now() + 99999999;
+  
+  gameStartTime = Date.now();
+  generateMap();
+  buildStaticMap();
+  
+  // Spawn player
+  const pos = spawnPos();
+  console.log("Creating player at:", pos);
+  player = createTank(pos.x, pos.y, true, 0, selectedClass, MY_ID);
+  
+  // Apply player upgrades
+  sandboxPlayerUpgrades.forEach(upgradeId => {
+    const u = UPGRADES.find(u => u.id === upgradeId);
+    if (u) u.apply(player);
+  });
+  player._godMode = sbGodMode;
+  entities.push(player);
+  
+  // Spawn bots
+  const diffMul = { easy: 0.55, normal: 0.7, hard: 1.0 };
+  for (let i = 0; i < sandboxBots.length; i++) {
+    const botDef = sandboxBots[i];
+    const p = spawnPos();
+    const bot = createTank(p.x, p.y, false, i + 1, botDef.cls);
+    bot._diffMul = diffMul[botDef.diff] || 0.7;
+    bot._godMode = botDef.godMode || false;
+    botDef.upgrades.forEach(upgradeId => {
+      const u = UPGRADES.find(u => u.id === upgradeId);
+      if (u) u.apply(bot);
+    });
     entities.push(bot);
   }
-  camera.x=player.x-W/2;camera.y=player.y-H/2;
-  document.getElementById('upgradePanel').style.display='none';updateHUD();requestAnimationFrame(gameLoop);
+  
+  console.log("Total entities:", entities.length);
+  
+  // Set camera
+  camera.x = player.x - W / 2;
+  camera.y = player.y - H / 2;
+  
+  // Hide sandbox UI and show game
+  document.getElementById('sandboxScreen').style.display = 'none';
+  document.getElementById('upgradePanel').style.display = 'none';
+  
+  updateHUD();
+  
+  // Stop any existing game loop and start new one
+  gameRunning = true;
+  lastFrame = performance.now();
+  requestAnimationFrame(gameLoop);
+  
+  console.log("Sandbox started!");
 }
+
 function updateSandboxPreview(){selectedClass=document.getElementById('sandboxPlayerClass').value;}
 
 // ── GAME INIT ────────────────────────────────────────────
@@ -1141,10 +1212,6 @@ function generateMap(seed=0){
   const rand=seededRand(seed||Math.floor(Math.random()*999999));trees=[];rocks=[];
   for(let i=0;i<240;i++)trees.push({x:rand()*MAP,y:rand()*MAP,r:8+rand()*16,v:Math.floor(rand()*3)});
   for(let i=0;i<100;i++)rocks.push({x:rand()*MAP,y:rand()*MAP,w:20+rand()*40,h:16+rand()*30});
-}
-function spawnPos(){
-  let x,y,t=0;do{x=300+Math.random()*(MAP-600);y=300+Math.random()*(MAP-600);t++;}
-  while(t<30&&entities.some(e=>dist(e.x,e.y,x,y)<200));return{x,y};
 }
 function dist(x1,y1,x2,y2){return Math.sqrt((x2-x1)**2+(y2-y1)**2);}
 function distSq(x1,y1,x2,y2){const dx=x2-x1,dy=y2-y1;return dx*dx+dy*dy;}
@@ -1212,7 +1279,12 @@ function fireBullet(tank){
   tank.lastShot=now;if(tank.isPlayer)playShot(tank.className==='HEAVY'?0.58:tank.className==='SNIPER'?1.6:1);
   let angles=[tank.turretAngle];
   if(tank.barrels===2)angles=[tank.turretAngle-0.1,tank.turretAngle+0.1];
-  for(let i=0;i<tank.extraBarrel;i++)angles.push(tank.turretAngle+Math.PI/8*(Math.random()>.5?1:-1));
+  if(tank.extraBarrel>0){
+    const total=angles.length+tank.extraBarrel;
+    const spread=Math.min(Math.PI*0.6, total*0.18);
+    angles=[];
+    for(let i=0;i<total;i++)angles.push(tank.turretAngle-spread/2+spread*(i/(total-1||1)));
+  }
   const col=CC[tank.className]||CC.WARRIOR;
   for(const a of angles){
     const bx=tank.x+Math.cos(a)*(tank.radius+15),by=tank.y+Math.sin(a)*(tank.radius+15);
@@ -1542,6 +1614,21 @@ function drawTank(c,tank){
   if(tank.isPlayer){c.shadowColor=col.m;c.shadowBlur=5;}
   if(tank.barrels===2){c.fillRect(0,-bw*0.85,blen,bw*0.65);c.fillRect(0,bw*0.2,blen,bw*0.65);c.fillStyle='rgba(255,255,255,0.12)';c.fillRect(blen-3,-bw*0.85,3,bw*0.65);c.fillRect(blen-3,bw*0.2,3,bw*0.65);}
   else{c.fillRect(0,-bw/2,blen,bw);c.fillStyle='rgba(255,255,255,0.1)';c.fillRect(blen-3,-bw/2,3,bw);}
+  if(tank.extraBarrel>0){
+    const totalB=(tank.barrels===2?2:1)+tank.extraBarrel;
+    const sp=Math.min(Math.PI*0.6,totalB*0.18);
+    const baseA=tank.turretAngle;
+    c.restore();c.save();c.translate(tank.x-camera.x,tank.y-camera.y);
+    for(let i=0;i<totalB;i++){
+      const a=baseA-sp/2+sp*(i/(totalB-1||1));
+      c.save();c.rotate(a);
+      c.fillStyle=tank.isPlayer?col.m:(isEnemy?'#5a5a52':'#909088');
+      if(tank.isPlayer){c.shadowColor=col.m;c.shadowBlur=4;}
+      c.fillRect(r*0.3,-bw*0.4,blen*0.85,bw*0.8);
+      c.shadowBlur=0;c.restore();
+    }
+    c.restore();c.save();c.translate(tank.x-camera.x,tank.y-camera.y);
+  }
   c.shadowBlur=0;
   c.beginPath();c.arc(0,0,r*0.5,0,Math.PI*2);c.fillStyle=isEnemy?'rgba(0,0,0,0.55)':`${col.g}0.45)`;c.fill();
   c.restore();
