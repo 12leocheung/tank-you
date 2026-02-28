@@ -222,6 +222,17 @@ canvas{display:block}
   #classScreen .sub{margin-bottom:14px}
 }
 .godBadge{display:inline-block;background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.4);color:#ffd700;font-size:8px;letter-spacing:3px;padding:2px 8px;margin-left:8px;vertical-align:middle;text-shadow:0 0 8px #ffd700}
+/* ── USERNAME SCREEN ── */
+#usernameScreen{position:fixed;inset:0;background:var(--bg);z-index:99998;display:flex;flex-direction:column;justify-content:center;align-items:center;color:var(--g)}
+#usernameScreen h1{font-family:'Orbitron',sans-serif;font-weight:900;font-size:52px;letter-spacing:10px;margin-bottom:6px;color:var(--g);text-shadow:0 0 20px var(--g),0 0 60px rgba(57,255,20,0.35);animation:tg 3s ease-in-out infinite}
+#usernameScreen .sub{letter-spacing:8px;font-size:11px;color:rgba(57,255,20,0.3);margin-bottom:40px}
+#usernameScreen .prompt{font-size:9px;letter-spacing:4px;color:rgba(57,255,20,0.4);margin-bottom:12px}
+#usernameInput{background:rgba(57,255,20,0.03);border:1px solid rgba(57,255,20,0.35);color:var(--g);font-family:'Orbitron',sans-serif;font-size:22px;letter-spacing:6px;padding:12px 20px;text-align:center;text-transform:uppercase;width:280px;margin-bottom:8px;outline:none}
+#usernameInput:focus{border-color:var(--g);box-shadow:0 0 20px rgba(57,255,20,0.2)}
+#usernameInput::placeholder{color:rgba(57,255,20,0.18);font-size:16px;letter-spacing:4px}
+#usernameError{font-size:9px;letter-spacing:2px;color:var(--r);min-height:16px;margin-bottom:12px}
+#playerNameDisplay{position:fixed;top:18px;right:18px;font-size:9px;letter-spacing:3px;color:rgba(57,255,20,0.4);cursor:pointer;border:1px solid rgba(57,255,20,0.15);padding:4px 10px;background:rgba(0,0,0,0.4);z-index:1000;display:none}
+#playerNameDisplay:hover{color:var(--g);border-color:rgba(57,255,20,0.4)}
 .upgradeChip{display:inline-flex;align-items:center;background:rgba(57,255,20,0.08);border:1px solid rgba(57,255,20,0.25);padding:3px 8px;margin:2px;font-size:9px;letter-spacing:1px;gap:4px;cursor:default}
 .chipCount{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;background:rgba(57,255,20,0.2);border:1px solid rgba(57,255,20,0.4);border-radius:2px;font-size:9px;font-family:'Orbitron',sans-serif;padding:0 3px}
 .chipMinus,.chipPlus{cursor:pointer;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(57,255,20,0.25);font-size:12px;line-height:1;color:rgba(57,255,20,0.6);transition:all .1s}
@@ -477,6 +488,20 @@ canvas{display:block}
     </div>
   </div>
 
+  <!-- Username Screen -->
+  <div id="usernameScreen">
+    <div class="ctl"></div><div class="ctr"></div><div class="cbl"></div><div class="cbr"></div>
+    <h1>TANK ROYALE</h1>
+    <div class="sub">LAST TANK STANDING</div>
+    <div class="prompt">ENTER YOUR CALLSIGN</div>
+    <input id="usernameInput" type="text" maxlength="12" placeholder="CALLSIGN" autocomplete="off" spellcheck="false">
+    <div id="usernameError"></div>
+    <button class="menuBtn primary" onclick="submitUsername()">ENTER BATTLEFIELD &#x2192;</button>
+  </div>
+
+  <!-- Player name badge -->
+  <div id="playerNameDisplay" style="display:none" onclick="changeUsername()">&#x2710; <span id="playerNameBadge"></span></div>
+
   <!-- Mobile Twin Stick Controls -->
   <div id="mobileControls">
     <div id="moveStickWrap">
@@ -585,6 +610,36 @@ if(pd.xp!==undefined&&pd.rp===undefined){pd.rp=pd.xp;pd.peakRp=pd.xp;pd.history=
 if(!pd.history)pd.history=[];if(!pd.peakRp)pd.peakRp=pd.rp||0;
 if(!pd.classWins)pd.classWins={};if(!pd.hsBestKills)pd.hsBestKills=[];if(!pd.hsBestPlace)pd.hsBestPlace=[];
 function saveData(){localStorage.setItem('tankroyale',JSON.stringify(pd));}
+
+// ── USERNAME ─────────────────────────────────────────────
+let playerName=localStorage.getItem('tankroyale_name')||'';
+function submitUsername(){
+  const inp=document.getElementById('usernameInput');
+  const val=inp.value.trim().toUpperCase().replace(/[^A-Z0-9_]/g,'');
+  const err=document.getElementById('usernameError');
+  if(val.length<2){err.textContent='MINIMUM 2 CHARACTERS';return;}
+  playerName=val;
+  localStorage.setItem('tankroyale_name',playerName);
+  document.getElementById('usernameScreen').style.display='none';
+  document.getElementById('playerNameDisplay').style.display='block';
+  document.getElementById('playerNameBadge').textContent=playerName;
+  showMenu();
+}
+function changeUsername(){
+  document.getElementById('usernameScreen').style.display='flex';
+  document.getElementById('usernameInput').value=playerName;
+  document.getElementById('usernameError').textContent='';
+  document.getElementById('menu').style.display='none';
+  document.getElementById('playerNameDisplay').style.display='none';
+}
+function initUsername(){
+  if(playerName){
+    document.getElementById('usernameScreen').style.display='none';
+    document.getElementById('playerNameDisplay').style.display='block';
+    document.getElementById('playerNameBadge').textContent=playerName;
+    document.getElementById('usernameInput').value=playerName;
+  }
+}
 const TIERS=[
   {name:'BRONZE',  minRp:0,   divs:3,rpPerDiv:100, color:'#cd7f32'},
   {name:'SILVER',  minRp:300, divs:3,rpPerDiv:150, color:'#b0b0b0'},
@@ -671,7 +726,7 @@ function showOnlineOptions(){
 }
 function createLobby(cls){
   lobbyCode=genCode();isLobbyHost=true;lobbyPlayers={};
-  lobbyPlayers[MY_ID]={id:MY_ID,name:'P_'+MY_ID.slice(0,4).toUpperCase(),className:cls,isBot:false};
+  lobbyPlayers[MY_ID]={id:MY_ID,name:playerName||'P_'+MY_ID.slice(0,4).toUpperCase(),className:cls,isBot:false};
   showLobbyScreen();mqttSubscribe(mqttTopic(lobbyCode,'join'));mqttSubscribe(mqttTopic(lobbyCode,'leave'));mqttSubscribe(mqttTopic(lobbyCode,'start'));
   mqttPublish(mqttTopic(lobbyCode,'join'),{id:MY_ID,name:lobbyPlayers[MY_ID].name,className:cls,isBot:false});startLobbyCountdown();
 }
@@ -685,7 +740,7 @@ function doJoinLobby(){
 }
 function joinLobby(code,cls){
   lobbyCode=code;isLobbyHost=false;lobbyPlayers={};
-  lobbyPlayers[MY_ID]={id:MY_ID,name:'P_'+MY_ID.slice(0,4).toUpperCase(),className:cls,isBot:false};
+  lobbyPlayers[MY_ID]={id:MY_ID,name:playerName||'P_'+MY_ID.slice(0,4).toUpperCase(),className:cls,isBot:false};
   showLobbyScreen();mqttSubscribe(mqttTopic(lobbyCode,'join'));mqttSubscribe(mqttTopic(lobbyCode,'leave'));mqttSubscribe(mqttTopic(lobbyCode,'start'));mqttSubscribe(mqttTopic(lobbyCode,'countdown'));
   mqttPublish(mqttTopic(lobbyCode,'join'),{id:MY_ID,name:lobbyPlayers[MY_ID].name,className:cls,isBot:false});
 }
@@ -729,6 +784,16 @@ function launchOnlineLobby(){
 function leaveLobby(){
   if(lobbyCode){mqttPublish(mqttTopic(lobbyCode,'leave'),{id:MY_ID});if(mqttClient)try{mqttClient.unsubscribe(mqttTopic(lobbyCode,'#'));}catch(e){}}
   clearInterval(lobbyTimer);lobbyCode=null;showMenu();
+}
+function startOnlineGame(data){
+  gameMode='online';gameRunning=true;onlineMode=true;menuCrsVisible=false;
+  entities=[];bullets=[];particles=[];pickups=[];killFeedEntries=[];sessionKills=0;
+  zoneRadius=MAP*0.5;zoneTargetRadius=zoneRadius*0.55;zoneCenter={x:MAP/2,y:MAP/2};zoneShrinkStart=Date.now()+zoneShrinkDelay;
+  gameStartTime=Date.now();generateMap(data.mapSeed);buildStaticMap();
+  data.players.forEach((p,i)=>{const pos=spawnPos(),isMe=p.id===MY_ID;const tank=createTank(pos.x,pos.y,isMe,i,p.className,p.id);tank.name=isMe?(playerName||'YOU'):p.name;tank.isBot=p.isBot;tank.isRemote=!isMe&&!p.isBot;if(isMe)player=tank;entities.push(tank);});
+  camera.x=player.x-W/2;camera.y=player.y-H/2;document.getElementById('upgradePanel').style.display='none';
+  mqttSubscribe(mqttTopic(lobbyCode,'state'));mqttSubscribe(mqttTopic(lobbyCode,'event'));
+  netStateInterval=setInterval(broadcastState,50);updateHUD();showMobileControls();requestAnimationFrame(gameLoop);
 }
 function showLobbyScreen(){
   ['menu','classScreen','onlineScreen','deathScreen','winScreen'].forEach(id=>{document.getElementById(id).style.display='none';});
@@ -862,6 +927,8 @@ function showMenu(){
   ['classScreen','onlineScreen','lobbyScreen','deathScreen','winScreen','leaderboardScreen','sandboxScreen','botSelectorScreen'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
   document.getElementById('menu').style.display='flex';updateMenuRankCard();
   document.getElementById('statsRow').textContent=`${pd.games} GAMES · ${pd.kills} KILLS · ${pd.wins} WINS`;
+  document.getElementById('playerNameDisplay').style.display=playerName?'block':'none';
+  if(playerName)document.getElementById('playerNameBadge').textContent=playerName;
   requestAnimationFrame(menuLoop);
 }
 function updateMenuRankCard(){
@@ -1283,7 +1350,7 @@ function dist(x1,y1,x2,y2){return Math.sqrt((x2-x1)**2+(y2-y1)**2);}
 function distSq(x1,y1,x2,y2){const dx=x2-x1,dy=y2-y1;return dx*dx+dy*dy;}
 function createTank(x,y,isPlayer,id,clsName,netId){
   const cls=CLASSES[clsName]||CLASSES.WARRIOR;
-  return{x,y,id,netId:netId||null,angle:0,turretAngle:0,hp:cls.hp,maxHp:cls.hp,speed:cls.speed,damage:cls.damage,fireRate:cls.fireRate,bulletSpeed:cls.bulletSpeed,bulletLife:cls.bulletLife,radius:cls.radius,barrels:cls.barrels,className:clsName,classIcon:cls.icon,ability:cls.ability,abilityCooldown:cls.abilityCooldown,abilityLastUsed:0,regen:0,pierce:false,split:false,extraBarrel:0,isPlayer,isBot:!isPlayer,isRemote:false,alive:true,vx:0,vy:0,lastShot:0,kills:0,xp:0,level:1,xpToNext:xpForLevel(1),upgrades:[],aiState:'wander',aiTarget:null,aiMoveAngle:Math.random()*Math.PI*2,aiMoveTimer:0,name:isPlayer?'YOU':'BOT_'+Math.random().toString(36).slice(2,6).toUpperCase(),cloaked:false,shielded:false,_nx:null,_ny:null,hitFlash:0};
+  return{x,y,id,netId:netId||null,angle:0,turretAngle:0,hp:cls.hp,maxHp:cls.hp,speed:cls.speed,damage:cls.damage,fireRate:cls.fireRate,bulletSpeed:cls.bulletSpeed,bulletLife:cls.bulletLife,radius:cls.radius,barrels:cls.barrels,className:clsName,classIcon:cls.icon,ability:cls.ability,abilityCooldown:cls.abilityCooldown,abilityLastUsed:0,regen:0,pierce:false,split:false,extraBarrel:0,isPlayer,isBot:!isPlayer,isRemote:false,alive:true,vx:0,vy:0,lastShot:0,kills:0,xp:0,level:1,xpToNext:xpForLevel(1),upgrades:[],aiState:'wander',aiTarget:null,aiMoveAngle:Math.random()*Math.PI*2,aiMoveTimer:0,name:isPlayer?(playerName||'YOU'):'BOT_'+Math.random().toString(36).slice(2,6).toUpperCase(),cloaked:false,shielded:false,_nx:null,_ny:null,hitFlash:0};
 }
 function applyRandomUpgrades(tank,count){
   const pool=UPGRADES.filter(u=>!(u.id==='pierce'&&tank.pierce)&&!(u.id==='split'&&tank.split));
@@ -1303,16 +1370,6 @@ function startGame(mode,cls){
   camera.x=player.x-W/2;camera.y=player.y-H/2;document.getElementById('upgradePanel').style.display='none';updateHUD();
   showMobileControls();
   requestAnimationFrame(gameLoop);
-}
-function startOnlineGame(data){
-  gameMode='online';gameRunning=true;onlineMode=true;menuCrsVisible=false;
-  entities=[];bullets=[];particles=[];pickups=[];killFeedEntries=[];sessionKills=0;
-  zoneRadius=MAP*0.5;zoneTargetRadius=zoneRadius*0.55;zoneCenter={x:MAP/2,y:MAP/2};zoneShrinkStart=Date.now()+zoneShrinkDelay;
-  gameStartTime=Date.now();generateMap(data.mapSeed);buildStaticMap();
-  data.players.forEach((p,i)=>{const pos=spawnPos(),isMe=p.id===MY_ID;const tank=createTank(pos.x,pos.y,isMe,i,p.className,p.id);tank.name=isMe?'YOU':p.name;tank.isBot=p.isBot;tank.isRemote=!isMe&&!p.isBot;if(isMe)player=tank;entities.push(tank);});
-  camera.x=player.x-W/2;camera.y=player.y-H/2;document.getElementById('upgradePanel').style.display='none';
-  mqttSubscribe(mqttTopic(lobbyCode,'state'));mqttSubscribe(mqttTopic(lobbyCode,'event'));
-  netStateInterval=setInterval(broadcastState,50);updateHUD();showMobileControls();requestAnimationFrame(gameLoop);
 }
 
 // ── UPGRADES ─────────────────────────────────────────────
@@ -1483,7 +1540,7 @@ function killTank(tank,killer){
     for(let i=unique.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[unique[i],unique[j]]=[unique[j],unique[i]];}
     for(const uid of unique){if(dropped.length>=2)break;if(Math.random()<0.4){spawnUpgradePickup(tank.x,tank.y,uid);dropped.push(uid);}}
   }
-  const kn=killer?(killer.isPlayer?'YOU':killer.name):'ZONE';
+  const kn=killer?(killer.isPlayer?(playerName||'YOU'):killer.name):'ZONE';
   addKF(`${kn} ▶ ${tank.name}`,killer&&killer.isPlayer);
   if(killer&&killer.isPlayer){killer.kills++;const xg=50+tank.level*15;giveXP(killer,xg);showXPFloat(`+${xg} XP`,killer);sessionKills++;}
   if(tank.isPlayer){
@@ -1871,7 +1928,13 @@ function hideMobileControls(){
 }
 
 initMobileControls();
-showMenu();
+initUsername();
+if(!playerName){
+  requestAnimationFrame(menuLoop);
+} else {
+  showMenu();
+}
+document.getElementById('usernameInput').addEventListener('keydown',function(e){if(e.key==='Enter')submitUsername();});
 </script>
 </body>
 </html>
