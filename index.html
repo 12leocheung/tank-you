@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>TANK ROYALE</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
@@ -179,6 +182,41 @@ canvas{display:block}
 .sbPresetBtn:hover{border-color:var(--g);color:var(--g);background:rgba(57,255,20,0.07)}
 .sbNum{background:rgba(57,255,20,0.04);border:1px solid rgba(57,255,20,0.2);color:var(--g);font-family:'Share Tech Mono',monospace;font-size:11px;padding:5px 10px;width:70px;text-align:center}
 .sbNum:focus{outline:none;border-color:var(--g)}
+/* ── LANDSCAPE LOCK ── */
+#portraitWarning{display:none;position:fixed;inset:0;background:var(--bg);z-index:99999;flex-direction:column;justify-content:center;align-items:center;color:var(--g);font-family:'Orbitron',sans-serif;text-align:center}
+#portraitWarning .pw-icon{font-size:60px;margin-bottom:20px;animation:rotate90 1.5s ease-in-out infinite alternate}
+#portraitWarning h2{font-size:18px;letter-spacing:6px;margin-bottom:10px;text-shadow:0 0 14px var(--g)}
+#portraitWarning p{font-size:9px;letter-spacing:3px;color:rgba(57,255,20,0.4)}
+@keyframes rotate90{0%{transform:rotate(0deg)}100%{transform:rotate(90deg)}}
+@media (pointer:coarse) and (orientation:portrait){#portraitWarning{display:flex}}
+
+/* ── MOBILE CONTROLS ── */
+#mobileControls{display:none;position:fixed;bottom:0;left:0;width:100%;height:200px;z-index:9999;pointer-events:none}
+#moveStickWrap,#aimStickWrap{position:absolute;bottom:24px;width:140px;height:140px;border-radius:50%;background:rgba(57,255,20,0.04);border:1px solid rgba(57,255,20,0.18);pointer-events:all;touch-action:none;box-shadow:0 0 20px rgba(57,255,20,0.06),inset 0 0 30px rgba(0,0,0,0.4)}
+#moveStickWrap{left:24px}
+#aimStickWrap{right:24px}
+.stickKnob{position:absolute;width:54px;height:54px;border-radius:50%;background:rgba(57,255,20,0.18);border:2px solid rgba(57,255,20,0.6);top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 0 16px rgba(57,255,20,0.35),inset 0 0 12px rgba(57,255,20,0.12);transition:background .1s;pointer-events:none}
+.stickKnob.active{background:rgba(57,255,20,0.32);border-color:var(--g);box-shadow:0 0 22px rgba(57,255,20,0.55)}
+.stickLabel{position:absolute;bottom:-22px;width:100%;text-align:center;font-size:8px;letter-spacing:3px;color:rgba(57,255,20,0.28);font-family:'Share Tech Mono',monospace}
+#abilityBtn{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);width:70px;height:70px;border-radius:50%;background:rgba(57,255,20,0.06);border:2px solid rgba(57,255,20,0.35);display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:all;touch-action:none;cursor:pointer;transition:all .12s;font-family:'Share Tech Mono',monospace}
+#abilityBtn:active,#abilityBtn.pressed{background:rgba(57,255,20,0.22);border-color:var(--g);box-shadow:0 0 24px rgba(57,255,20,0.45)}
+#abilityBtn.ready{border-color:var(--g);box-shadow:0 0 14px rgba(57,255,20,0.3)}
+#abilityBtn.cooldown{opacity:0.5}
+#abilityBtnLabel{font-size:8px;letter-spacing:2px;color:rgba(57,255,20,0.7);margin-top:3px}
+#abilityBtnIcon{font-size:18px}
+#abilityCooldownRing{position:absolute;top:-2px;left:-2px;width:74px;height:74px;border-radius:50%;pointer-events:none}
+@media (pointer:coarse),(max-width:768px){
+  body{cursor:default}
+  #controlHint{display:none}
+  #minimap{bottom:220px}
+  #minimapLabel{bottom:414px}
+  #hud{font-size:10px}
+  .menuBtn{padding:10px 28px;font-size:11px}
+  #menu h1{font-size:40px;letter-spacing:6px}
+  #classGrid{flex-wrap:wrap;justify-content:center}
+  .classCard{width:130px}
+  #upgradePanel{min-width:min(560px,92vw);bottom:210px}
+}
 .godBadge{display:inline-block;background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.4);color:#ffd700;font-size:8px;letter-spacing:3px;padding:2px 8px;margin-left:8px;vertical-align:middle;text-shadow:0 0 8px #ffd700}
 .upgradeChip{display:inline-flex;align-items:center;background:rgba(57,255,20,0.08);border:1px solid rgba(57,255,20,0.25);padding:3px 8px;margin:2px;font-size:9px;letter-spacing:1px;gap:4px;cursor:default}
 .chipCount{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;background:rgba(57,255,20,0.2);border:1px solid rgba(57,255,20,0.4);border-radius:2px;font-size:9px;font-family:'Orbitron',sans-serif;padding:0 3px}
@@ -208,6 +246,11 @@ canvas{display:block}
 </style>
 </head>
 <body>
+<div id="portraitWarning">
+  <div class="pw-icon">📱</div>
+  <h2>ROTATE DEVICE</h2>
+  <p>LANDSCAPE MODE REQUIRED</p>
+</div>
 <div id="gc">
   <canvas id="bgCvs"></canvas>
   <canvas id="gameCanvas"></canvas>
@@ -255,7 +298,7 @@ canvas{display:block}
     <div class="sub">LAST TANK STANDING</div>
     <div id="rankCard">
       <div id="rankTierLabel">BRONZE I</div>
-      <div id="rankRpLabel">0 RP</div>
+      <div id="rankRpLabel">0 XP</div>
       <div id="rankBarOuter"><div id="rankBarFill" style="width:0%"></div></div>
       <div id="rankBarSub"></div>
     </div>
@@ -265,6 +308,7 @@ canvas{display:block}
     <button class="menuBtn" onclick="showSandbox()">⚗ SANDBOX MODE</button>
     <button class="menuBtn" onclick="showLeaderboard()">★ LEADERBOARD</button>
     <div id="controlHint">WASD · MOUSE AIM · LMB FIRE · SPACE ABILITY</div>
+    <div id="mobileHint" style="display:none;position:absolute;bottom:18px;left:50%;transform:translateX(-50%);font-size:8px;letter-spacing:3px;color:rgba(57,255,20,0.18);white-space:nowrap">LEFT STICK MOVE · RIGHT STICK AIM & FIRE · CENTER ABILITY</div>
   </div>
 
   <div id="onlineScreen">
@@ -426,6 +470,23 @@ canvas{display:block}
     <div style="display:flex;gap:10px;margin:16px 0 30px">
       <button class="menuBtn primary" onclick="startSandbox()">▶ LAUNCH SANDBOX</button>
       <button class="menuBtn" onclick="showMenu()">← BACK</button>
+    </div>
+  </div>
+
+  <!-- Mobile Twin Stick Controls -->
+  <div id="mobileControls">
+    <div id="moveStickWrap">
+      <div class="stickKnob" id="moveKnob"></div>
+      <div class="stickLabel">MOVE</div>
+    </div>
+    <div id="abilityBtn">
+      <canvas id="abilityCooldownRing" width="74" height="74"></canvas>
+      <div id="abilityBtnIcon">⚡</div>
+      <div id="abilityBtnLabel">ABILITY</div>
+    </div>
+    <div id="aimStickWrap">
+      <div class="stickKnob" id="aimKnob"></div>
+      <div class="stickLabel">AIM · FIRE</div>
     </div>
   </div>
 </div>
@@ -793,6 +854,7 @@ document.addEventListener('mousedown',e=>{
 function showMenu(){
   gameRunning=false;onlineMode=false;menuCrsVisible=true;
   if(netStateInterval){clearInterval(netStateInterval);netStateInterval=null;}
+  hideMobileControls();
   ['classScreen','onlineScreen','lobbyScreen','deathScreen','winScreen','leaderboardScreen','sandboxScreen','botSelectorScreen'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
   document.getElementById('menu').style.display='flex';updateMenuRankCard();
   document.getElementById('statsRow').textContent=`${pd.games} GAMES · ${pd.kills} KILLS · ${pd.wins} WINS`;
@@ -801,10 +863,10 @@ function showMenu(){
 function updateMenuRankCard(){
   const ri=getRankInfo(pd.rp);
   const lbl=document.getElementById('rankTierLabel');lbl.textContent=ri.label;lbl.style.color=ri.color;lbl.style.textShadow=`0 0 14px ${ri.color}`;
-  document.getElementById('rankRpLabel').textContent=`${pd.rp} RP  ·  PEAK: ${pd.peakRp} RP`;
+  document.getElementById('rankRpLabel').textContent=`${pd.rp} XP  ·  PEAK: ${pd.peakRp} XP`;
   const pct=ri.isMaster?100:Math.min(100,(ri.rpInDiv/ri.rpPerDiv)*100);
   const fill=document.getElementById('rankBarFill');fill.style.width=pct+'%';fill.style.background=ri.color;fill.style.boxShadow=`0 0 8px ${ri.color}`;
-  document.getElementById('rankBarSub').textContent=ri.isMaster?`MASTER — ${pd.rp} RP TOTAL`:`${ri.rpInDiv} / ${ri.rpPerDiv} RP TO NEXT DIVISION`;
+  document.getElementById('rankBarSub').textContent=ri.isMaster?`MASTER — ${pd.rp} XP TOTAL`:`${ri.rpInDiv} / ${ri.rpPerDiv} XP TO NEXT DIVISION`;
 }
 function renderRpResult(elId,place,kills,won){
   const el=document.getElementById(elId);if(!el)return;
@@ -822,7 +884,7 @@ function renderRpResult(elId,place,kills,won){
   const prom=ra.label!==rb2.label&&res.after>res.before,dem=ra.label!==rb2.label&&res.after<res.before;
   const sign=rp.total>=0?'+':'';
   const pct=ra.isMaster?100:Math.min(100,(ra.rpInDiv/ra.rpPerDiv)*100);
-  el.innerHTML=`<div class="rpTitle">RANKED RESULT</div><div class="rpRows">PLACEMENT: #${place} &nbsp;·&nbsp; KILLS: ${kills}<br>BASE: ${rp.base>=0?'+':''}${rp.base} RP &nbsp; KILLS: +${rp.killBonus} RP</div><div class="rpChange ${rp.total>=0?'up':'down'}">${sign}${rp.total} RP</div>${prom?`<div style="color:#39ff14;font-size:11px;letter-spacing:3px;margin-top:6px;text-shadow:0 0 10px #39ff14">▲ PROMOTED TO ${ra.label}!</div>`:''}${dem?`<div style="color:#ff3a3a;font-size:11px;letter-spacing:3px;margin-top:6px;">▼ DEMOTED TO ${ra.label}</div>`:''}<div class="rpNew" style="color:${ra.color};text-shadow:0 0 8px ${ra.color}">${ra.label} — ${res.after} RP</div><div class="rpBarWrap"><div class="rpBarFill" id="rpAnimBar" style="width:0%;background:${ra.color};box-shadow:0 0 8px ${ra.color}"></div></div>`;
+  el.innerHTML=`<div class="rpTitle">RANKED RESULT</div><div class="rpRows">PLACEMENT: #${place} &nbsp;·&nbsp; KILLS: ${kills}<br>BASE: ${rp.base>=0?'+':''}${rp.base} XP &nbsp; KILLS: +${rp.killBonus} XP</div><div class="rpChange ${rp.total>=0?'up':'down'}">${sign}${rp.total} XP</div>${prom?`<div style="color:#39ff14;font-size:11px;letter-spacing:3px;margin-top:6px;text-shadow:0 0 10px #39ff14">▲ PROMOTED TO ${ra.label}!</div>`:''}${dem?`<div style="color:#ff3a3a;font-size:11px;letter-spacing:3px;margin-top:6px;">▼ DEMOTED TO ${ra.label}</div>`:''}<div class="rpNew" style="color:${ra.color};text-shadow:0 0 8px ${ra.color}">${ra.label} — ${res.after} XP</div><div class="rpBarWrap"><div class="rpBarFill" id="rpAnimBar" style="width:0%;background:${ra.color};box-shadow:0 0 8px ${ra.color}"></div></div>`;
   setTimeout(()=>{const b=document.getElementById('rpAnimBar');if(b)b.style.width=pct+'%';},100);
 }
 function showClassSelect(mode){
@@ -875,7 +937,7 @@ function showLeaderboard(){
   // RANK TAB
   document.getElementById('lbRankBig').innerHTML=`
     <div class="rl" style="color:${rank.color};text-shadow:0 0 20px ${rank.color}">${rank.label}</div>
-    <div class="rp">${pd.rp} RP &nbsp;·&nbsp; PEAK: ${pd.peakRp} RP</div>`;
+    <div class="rp">${pd.rp} XP &nbsp;·&nbsp; PEAK: ${pd.peakRp} XP</div>`;
   document.getElementById('lbProgBar').innerHTML=`
     <div style="display:flex;justify-content:space-between;font-size:8px;color:rgba(57,255,20,0.3);margin-bottom:5px"><span>${rank.label}</span><span>${rank.isMaster?'MAX':Math.round(pct)+'%'}</span></div>
     <div style="height:5px;background:rgba(57,255,20,0.07);border:1px solid rgba(57,255,20,0.12)"><div style="height:100%;width:${pct}%;background:${rank.color};box-shadow:0 0 10px ${rank.color};transition:width .6s"></div></div>`;
@@ -883,7 +945,7 @@ function showLeaderboard(){
     const isC=pd.rp>=t.minRp,isA=rank.tier.name===t.name;
     return`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 12px;margin-bottom:3px;border:1px solid ${isA?t.color:'rgba(57,255,20,0.07)'};background:${isA?'rgba(57,255,20,0.04)':'transparent'};opacity:${isC?1:0.4}">
       <span style="color:${t.color};font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:3px">${t.name}</span>
-      <span style="font-size:9px;color:rgba(57,255,20,0.4);letter-spacing:2px">${t.minRp} RP${isA?' ◄ YOU':''}</span>
+      <span style="font-size:9px;color:rgba(57,255,20,0.4);letter-spacing:2px">${t.minRp} XP${isA?' ◄ YOU':''}</span>
     </div>`;}).join('');
   document.getElementById('lbTierList').innerHTML=tierHtml;
 
@@ -892,7 +954,7 @@ function showLeaderboard(){
   const wr=pd.games>0?(pd.wins/pd.games*100).toFixed(1)+'%':'—';
   document.getElementById('lbStatGrid').innerHTML=[
     ['WINS',pd.wins],['GAMES',pd.games],['WIN RATE',wr],
-    ['TOTAL KILLS',pd.kills],['AVG KILLS',avgK],['PEAK RP',pd.peakRp]
+    ['TOTAL KILLS',pd.kills],['AVG KILLS',avgK],['PEAK XP',pd.peakRp]
   ].map(([k,v])=>`<div class="statBox"><div class="sv">${v}</div><div class="sk">${k}</div></div>`).join('');
   const cw=pd.classWins;
   document.getElementById('lbClassWins').innerHTML=Object.keys(CLASSES).map(k=>{
@@ -914,7 +976,7 @@ function showLeaderboard(){
       return`<div class="histRow ${cls}">
         <span class="hr-place" style="color:${h.won?'var(--g)':h.place<=5?'var(--a)':'rgba(57,255,20,0.5)'}">#${h.place}</span>
         <span style="font-size:9px;color:rgba(57,255,20,0.5)">${h.cls||'?'} · ${h.kills}K</span>
-        <span class="hr-rp" style="color:${h.rpChange>=0?'var(--g)':'var(--r)'}">${rpSign}${h.rpChange} RP</span>
+        <span class="hr-rp" style="color:${h.rpChange>=0?'var(--g)':'var(--r)'}">${rpSign}${h.rpChange} XP</span>
         <span style="font-size:8px;color:rgba(57,255,20,0.3)">${ds}</span>
       </div>`;}).join('');
   }
@@ -1195,7 +1257,7 @@ function startSandbox(){
   document.getElementById('upgradePanel').style.display = 'none';
   
   updateHUD();
-  
+  showMobileControls();
   // Stop any existing game loop and start new one
   gameRunning = true;
   lastFrame = performance.now();
@@ -1235,6 +1297,7 @@ function startGame(mode,cls){
   const pos=spawnPos();player=createTank(pos.x,pos.y,true,0,cls,MY_ID);entities.push(player);
   const ck=Object.keys(CLASSES);for(let i=1;i<MAX_P;i++){const p=spawnPos();const bot=createTank(p.x,p.y,false,i,ck[Math.floor(Math.random()*ck.length)]);applyRandomUpgrades(bot,Math.floor(Math.random()*4));entities.push(bot);}
   camera.x=player.x-W/2;camera.y=player.y-H/2;document.getElementById('upgradePanel').style.display='none';updateHUD();
+  showMobileControls();
   requestAnimationFrame(gameLoop);
 }
 function startOnlineGame(data){
@@ -1245,7 +1308,7 @@ function startOnlineGame(data){
   data.players.forEach((p,i)=>{const pos=spawnPos(),isMe=p.id===MY_ID;const tank=createTank(pos.x,pos.y,isMe,i,p.className,p.id);tank.name=isMe?'YOU':p.name;tank.isBot=p.isBot;tank.isRemote=!isMe&&!p.isBot;if(isMe)player=tank;entities.push(tank);});
   camera.x=player.x-W/2;camera.y=player.y-H/2;document.getElementById('upgradePanel').style.display='none';
   mqttSubscribe(mqttTopic(lobbyCode,'state'));mqttSubscribe(mqttTopic(lobbyCode,'event'));
-  netStateInterval=setInterval(broadcastState,50);updateHUD();requestAnimationFrame(gameLoop);
+  netStateInterval=setInterval(broadcastState,50);updateHUD();showMobileControls();requestAnimationFrame(gameLoop);
 }
 
 // ── UPGRADES ─────────────────────────────────────────────
@@ -1331,12 +1394,27 @@ function updateAI(tank,dt){
   const spMul=tank._diffMul||0.7;
   tank.angle=tank.aiMoveAngle;tank.vx=Math.cos(tank.aiMoveAngle)*tank.speed*spMul;tank.vy=Math.sin(tank.aiMoveAngle)*tank.speed*spMul;
 }
+// Mobile input state (vars declared here so updatePlayer can access them)
+var mobileInputActive=false,mobileMoveDx=0,mobileMoveDy=0,mobileAimDx=0,mobileAimDy=0,mobileIsFiring=false;
+var mobileMoveTouchId=null,mobileAimTouchId=null;
+var mobileMoveOriginX=0,mobileMoveOriginY=0,mobileAimOriginX=0,mobileAimOriginY=0;
+
 function updatePlayer(){
-  if(!player||!player.alive)return;let dx=0,dy=0;
-  if(keys['w']||keys['arrowup'])dy--;if(keys['s']||keys['arrowdown'])dy++;
-  if(keys['a']||keys['arrowleft'])dx--;if(keys['d']||keys['arrowright'])dx++;
-  if(dx||dy){const l=Math.hypot(dx,dy);player.angle=Math.atan2(dy/l,dx/l);player.vx=(dx/l)*player.speed;player.vy=(dy/l)*player.speed;}else{player.vx=0;player.vy=0;}
-  player.turretAngle=Math.atan2(mouseWorld.y-player.y,mouseWorld.x-player.x);
+  if(!player||!player.alive)return;
+  if(mobileInputActive){
+    var md=Math.hypot(mobileMoveDx,mobileMoveDy);
+    if(md>8){player.angle=Math.atan2(mobileMoveDy/md,mobileMoveDx/md);player.vx=(mobileMoveDx/md)*player.speed;player.vy=(mobileMoveDy/md)*player.speed;}
+    else{player.vx=0;player.vy=0;}
+    var ad=Math.hypot(mobileAimDx,mobileAimDy);
+    if(ad>8)player.turretAngle=Math.atan2(mobileAimDy,mobileAimDx);
+    if(mobileIsFiring&&ad>18&&gameRunning){var f=fireBullet(player);if(f&&onlineMode)broadcastShoot(player.turretAngle);}
+  } else {
+    var dx=0,dy=0;
+    if(keys['w']||keys['arrowup'])dy--;if(keys['s']||keys['arrowdown'])dy++;
+    if(keys['a']||keys['arrowleft'])dx--;if(keys['d']||keys['arrowright'])dx++;
+    if(dx||dy){var l=Math.hypot(dx,dy);player.angle=Math.atan2(dy/l,dx/l);player.vx=(dx/l)*player.speed;player.vy=(dy/l)*player.speed;}else{player.vx=0;player.vy=0;}
+    player.turretAngle=Math.atan2(mouseWorld.y-player.y,mouseWorld.x-player.x);
+  }
 }
 
 // ── PICKUPS ──────────────────────────────────────────────
@@ -1406,15 +1484,17 @@ function killTank(tank,killer){
   if(killer&&killer.isPlayer){killer.kills++;const xg=50+tank.level*15;giveXP(killer,xg);showXPFloat(`+${xg} XP`,killer);sessionKills++;}
   if(tank.isPlayer){
     menuCrsVisible=true;if(netStateInterval){clearInterval(netStateInterval);netStateInterval=null;}
+    hideMobileControls();
     const alv=entities.filter(e=>e.alive).length,place=alv+1,elapsed=Math.floor((Date.now()-gameStartTime)/1000);
-    setTimeout(()=>{document.getElementById('endStats').innerHTML=`#${place} / ${MAX_P} &nbsp;·&nbsp; ${elapsed}s &nbsp;·&nbsp; ${sessionKills} KILLS<br><span style="color:rgba(57,255,20,0.3)">${player.className} LV${player.level}</span>`;renderRpResult('rpResult',place,sessionKills,false);document.getElementById('deathScreen').style.display='flex';},1000);
+    setTimeout(()=>{document.getElementById('endStats').innerHTML=`#${place} / ${MAX_P} &nbsp;·&nbsp; ${elapsed}s &nbsp;·&nbsp; ${sessionKills} KILLS<br><span style="color:rgba(57,255,20,0.3)">${player.className} LV${player.level}</span>`;if(gameMode==='sandbox'){document.getElementById('rpResult').innerHTML='<div class="rpTitle">SANDBOX MODE</div><div class="rpRows">NO XP AWARDED IN SANDBOX</div>';}else{renderRpResult('rpResult',place,sessionKills,false);}document.getElementById('deathScreen').style.display='flex';},1000);
     gameRunning=false;requestAnimationFrame(menuLoop);return;
   }
   const alive=entities.filter(e=>e.alive);
   if(alive.length===1&&alive[0].isPlayer){
     menuCrsVisible=true;if(netStateInterval){clearInterval(netStateInterval);netStateInterval=null;}
+    hideMobileControls();
     const elapsed=Math.floor((Date.now()-gameStartTime)/1000);
-    setTimeout(()=>{document.getElementById('endStats2').innerHTML=`#1 / ${MAX_P} &nbsp;·&nbsp; ${elapsed}s &nbsp;·&nbsp; ${sessionKills} KILLS<br><span style="color:rgba(57,255,20,0.3)">${player.className} LV${player.level}</span>`;renderRpResult('rpResult2',1,sessionKills,true);document.getElementById('winScreen').style.display='flex';},500);
+    setTimeout(()=>{document.getElementById('endStats2').innerHTML=`#1 / ${MAX_P} &nbsp;·&nbsp; ${elapsed}s &nbsp;·&nbsp; ${sessionKills} KILLS<br><span style="color:rgba(57,255,20,0.3)">${player.className} LV${player.level}</span>`;if(gameMode==='sandbox'){document.getElementById('rpResult2').innerHTML='<div class="rpTitle">SANDBOX MODE</div><div class="rpRows">NO XP AWARDED IN SANDBOX</div>';}else{renderRpResult('rpResult2',1,sessionKills,true);}document.getElementById('winScreen').style.display='flex';},500);
     gameRunning=false;requestAnimationFrame(menuLoop);
   }
 }
@@ -1439,11 +1519,31 @@ function updateHUD(){
   const col=CC[player.className]||CC.WARRIOR;
   document.getElementById('classTag').innerHTML=`<span style="color:${col.m};text-shadow:0 0 8px ${col.m}">${player.className} ${player.classIcon}</span>${onlineMode?' <span style="color:rgba(57,255,20,0.28)">[ONLINE]</span>':''}${player._godMode?' <span style="color:#ffd700;text-shadow:0 0 8px #ffd700;font-size:9px">[GOD]</span>':''}${!sbZoneOn&&gameMode==='sandbox'?' <span style="color:rgba(0,229,255,0.5);font-size:9px">[∞ ZONE]</span>':''}`;
   document.getElementById('aliveCount').textContent='◈ '+entities.filter(e=>e.alive).length+' ALIVE';
-  const ri=getRankInfo(pd.rp);const rb=document.getElementById('rankBadge');rb.textContent=ri.label+' · '+pd.rp+' RP';rb.style.color=ri.color;
+  const ri=getRankInfo(pd.rp);const rb=document.getElementById('rankBadge');rb.textContent=ri.label+' · '+pd.rp+' XP';rb.style.color=ri.color;
   const now=Date.now(),cdL=Math.max(0,player.abilityCooldown-(now-player.abilityLastUsed)),cdP=1-cdL/player.abilityCooldown,pips=10,fill=Math.round(cdP*pips);
   const pc=cdL===0?col.m:'rgba(57,255,20,0.75)';
   document.getElementById('ammoBar').innerHTML=`<span style="font-size:8px;letter-spacing:2px;color:rgba(57,255,20,0.28);margin-right:6px;">${player.ability}</span>`+Array.from({length:pips},(_,i)=>`<div class="ammoPip${i<fill?'':' empty'}" style="${i<fill?`background:${pc};box-shadow:0 0 5px ${pc}`:''}"></div>`).join('');
   document.getElementById('zoneInfo').textContent=Date.now()>zoneShrinkStart?'⚠ STORM CLOSING':'';
+  // Mobile ability ring
+  if(mobileInputActive&&player){
+    var btn=document.getElementById('abilityBtn');
+    var icon=document.getElementById('abilityBtnIcon');
+    var lbl=document.getElementById('abilityBtnLabel');
+    var ring=document.getElementById('abilityCooldownRing');
+    if(btn&&ring){
+      var abilIcons={DASH:'💨',SHIELD:'🛡',SLAM:'💥',CLOAK:'👁',BURST:'🔥'};
+      icon.textContent=abilIcons[player.ability]||'⚡';
+      lbl.textContent=player.ability;
+      var nowMs=Date.now(),cdL2=Math.max(0,player.abilityCooldown-(nowMs-player.abilityLastUsed));
+      var pct2=1-cdL2/player.abilityCooldown;
+      btn.classList.toggle('ready',cdL2===0);
+      btn.classList.toggle('cooldown',cdL2>0);
+      var col2=CC[player.className]||CC.WARRIOR;
+      var rc=ring.getContext('2d');rc.clearRect(0,0,74,74);
+      rc.beginPath();rc.arc(37,37,34,-Math.PI/2,Math.PI*1.5);rc.strokeStyle='rgba(57,255,20,0.1)';rc.lineWidth=3;rc.stroke();
+      if(pct2>0){rc.beginPath();rc.arc(37,37,34,-Math.PI/2,-Math.PI/2+pct2*Math.PI*2);rc.strokeStyle=cdL2===0?col2.m:col2.g+'0.65)';rc.shadowColor=cdL2===0?col2.m:'transparent';rc.shadowBlur=cdL2===0?8:0;rc.lineWidth=3;rc.stroke();rc.shadowBlur=0;}
+    }
+  }
 }
 
 // ── GAME LOOP ─────────────────────────────────────────────
@@ -1696,6 +1796,77 @@ canvas.addEventListener('mousedown',e=>{if(e.button===0){mouseDown=true;if(playe
 canvas.addEventListener('mouseup',e=>{if(e.button===0)mouseDown=false;});
 setInterval(()=>{if(mouseDown&&player&&player.alive&&gameRunning){const f=fireBullet(player);if(f&&onlineMode)broadcastShoot(player.turretAngle);}},75);
 
+// ── MOBILE CONTROLS ─────────────────────────────────────
+var isMobileDevice=(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches)||(/Android|iPhone|iPad|iPod|IEMobile|WPDesktop/i.test(navigator.userAgent));
+var STICK_RADIUS=70;
+
+function clampStick(dx,dy){var d=Math.hypot(dx,dy);if(d>STICK_RADIUS){return{x:dx/d*STICK_RADIUS,y:dy/d*STICK_RADIUS};}return{x:dx,y:dy};}
+function setKnobPos(k,dx,dy){k.style.transform='translate(calc(-50% + '+dx+'px),calc(-50% + '+dy+'px))';}
+
+function initMobileControls(){
+  if(!isMobileDevice)return;
+  mobileInputActive=true;
+  var moveWrap=document.getElementById('moveStickWrap');
+  var aimWrap=document.getElementById('aimStickWrap');
+  var moveKnob=document.getElementById('moveKnob');
+  var aimKnob=document.getElementById('aimKnob');
+  var abilBtn=document.getElementById('abilityBtn');
+
+  moveWrap.addEventListener('touchstart',function(e){e.preventDefault();
+    var t=e.changedTouches[0];if(mobileMoveTouchId!==null)return;
+    mobileMoveTouchId=t.identifier;mobileMoveOriginX=t.clientX;mobileMoveOriginY=t.clientY;
+    moveKnob.classList.add('active');if(AC.state==='suspended')AC.resume();
+  },{passive:false});
+  moveWrap.addEventListener('touchmove',function(e){e.preventDefault();
+    for(var i=0;i<e.changedTouches.length;i++){var t=e.changedTouches[i];if(t.identifier!==mobileMoveTouchId)continue;
+      var c=clampStick(t.clientX-mobileMoveOriginX,t.clientY-mobileMoveOriginY);
+      mobileMoveDx=c.x;mobileMoveDy=c.y;setKnobPos(moveKnob,c.x,c.y);}
+  },{passive:false});
+  function resetMove(){mobileMoveTouchId=null;mobileMoveDx=0;mobileMoveDy=0;setKnobPos(moveKnob,0,0);moveKnob.classList.remove('active');}
+  moveWrap.addEventListener('touchend',function(e){e.preventDefault();
+    for(var i=0;i<e.changedTouches.length;i++){if(e.changedTouches[i].identifier===mobileMoveTouchId)resetMove();}
+  },{passive:false});
+  moveWrap.addEventListener('touchcancel',resetMove);
+
+  aimWrap.addEventListener('touchstart',function(e){e.preventDefault();
+    var t=e.changedTouches[0];if(mobileAimTouchId!==null)return;
+    mobileAimTouchId=t.identifier;mobileAimOriginX=t.clientX;mobileAimOriginY=t.clientY;
+    aimKnob.classList.add('active');if(AC.state==='suspended')AC.resume();
+  },{passive:false});
+  aimWrap.addEventListener('touchmove',function(e){e.preventDefault();
+    for(var i=0;i<e.changedTouches.length;i++){var t=e.changedTouches[i];if(t.identifier!==mobileAimTouchId)continue;
+      var rdx=t.clientX-mobileAimOriginX,rdy=t.clientY-mobileAimOriginY;
+      var c=clampStick(rdx,rdy);mobileAimDx=c.x;mobileAimDy=c.y;setKnobPos(aimKnob,c.x,c.y);
+      mobileIsFiring=Math.hypot(rdx,rdy)>18;}
+  },{passive:false});
+  function resetAim(){mobileAimTouchId=null;mobileAimDx=0;mobileAimDy=0;mobileIsFiring=false;setKnobPos(aimKnob,0,0);aimKnob.classList.remove('active');}
+  aimWrap.addEventListener('touchend',function(e){e.preventDefault();
+    for(var i=0;i<e.changedTouches.length;i++){if(e.changedTouches[i].identifier===mobileAimTouchId)resetAim();}
+  },{passive:false});
+  aimWrap.addEventListener('touchcancel',resetAim);
+
+  abilBtn.addEventListener('touchstart',function(e){e.preventDefault();
+    if(player&&player.alive&&gameRunning)useAbility(player);
+    abilBtn.classList.add('pressed');setTimeout(function(){abilBtn.classList.remove('pressed');},200);
+  },{passive:false});
+
+  canvas.addEventListener('touchstart',function(e){e.preventDefault();},{passive:false});
+  canvas.addEventListener('touchmove',function(e){e.preventDefault();},{passive:false});
+
+  // Show mobile hint
+  var ch=document.getElementById('controlHint');if(ch)ch.style.display='none';
+  var mh=document.getElementById('mobileHint');if(mh)mh.style.display='block';
+}
+
+function showMobileControls(){
+  if(isMobileDevice)document.getElementById('mobileControls').style.display='block';
+}
+function hideMobileControls(){
+  document.getElementById('mobileControls').style.display='none';
+  mobileMoveDx=0;mobileMoveDy=0;mobileAimDx=0;mobileAimDy=0;mobileIsFiring=false;
+}
+
+initMobileControls();
 showMenu();
 </script>
 </body>
